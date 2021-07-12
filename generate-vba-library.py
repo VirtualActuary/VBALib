@@ -96,7 +96,6 @@ for fpath in common_lib.output_dir.glob("*.bas"):
             #End If
             """).strip().encode("utf-8"))
 
-
             txt_lines.pop(i)
             i -= 1
 
@@ -120,6 +119,23 @@ for fpath in common_lib.output_dir.glob("*.cls"):
         f.write(txt.replace(b"Attribute VB_Exposed = False",
                             b"Attribute VB_Exposed = True"))
 
+frm1 = b"    Dim bytesRead As Long"
+to1 = b"""
+    #If VBA7 Then
+        Dim bytesRead As LongLong
+    #Else
+        Dim bytesRead As Long
+    #End If
+"""
+
+frm2 = b"    Dim ret As Long"
+to2 = b"""
+    #If VBA7 Then
+        Dim ret As LongLong
+    #Else
+        Dim ret As Long
+    #End If
+"""
 
 with common_lib.output_dir.joinpath("concatenated.bas").open("wb") as f:
     f.write(b"\r\n".join(
@@ -128,7 +144,8 @@ with common_lib.output_dir.joinpath("concatenated.bas").open("wb") as f:
         [b"Option Explicit"]+
         all_precode_declare+
         all_bas_lines
-        ))
+        ).replace(frm1, to1).replace(frm2, to2)
+    )
 
 # Find all function/sub names and attach "VLib." in front ot them
 vlib_funcnames = set()
