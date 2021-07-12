@@ -1,3 +1,5 @@
+Attribute VB_Name = "EarlyBindings"
+
 Option Explicit
 Option Compare Text
 
