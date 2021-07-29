@@ -182,7 +182,7 @@ Config(
             "ECPArrayList": "zWsArray",
             "ECPTextStream": "zWsStream",
             "parserConfig": "zWsCsvConf",
-            "CSVinterface": "z__WsCsv__",  # useful
+            "CSVinterface": "zWsCsvInterface",  # useful
         }
     ),
     Source(
@@ -204,17 +204,17 @@ Config(
         mid_process=mid_process,
         rename_overwrites={
             "JsonConverter": "Json", # bas file
-            "Dictionary": "zJsonDict",
+            #"Dictionary": "zJsonDict",
         },
     ),
-    Source(
-        git_source="https://github.com/VBA-tools/VBA-Dictionary.git",
-        git_rev="757aea9",
-        glob_include=['**/Dictionary.cls'],
-        rename_overwrites={
-            "Dictionary": "zJsonDict",
-        }
-    ),
+    #Source(
+    #    git_source="https://github.com/VBA-tools/VBA-Dictionary.git",
+    #    git_rev="757aea9",
+    #    glob_include=['**/Dictionary.cls'],
+    #    rename_overwrites={
+    #        "Dictionary": "zJsonDict",
+    #    }
+    #),
     Source(
         git_source="https://github.com/sdkn104/VBA-CSV.git",
         git_rev="48d98d6",
@@ -263,14 +263,8 @@ create_output_workbook()
 
 
 """
-Possible VBA sources to choose from:
-
--- https://github.com/sancarn/stdVBA.git (looks promising)
--- https://github.com/ws-garcia/VBA-CSV-interface.git (Very nice!)
--- https://github.com/GustavBrock/VBA.Compress.git
--- https://github.com/VBA-tools/VBA-JSON.git
--- https://github.com/nylen/vba-common-library (VBALib_ExcelTable.cls)
-
+Usefull VBA projects to choose from
+https://github.com/sancarn/stdVBA.git (looks promising)
 https://github.com/sdkn104/VBA-CSV
 https://github.com/VBA-tools
 https://github.com/GustavBrock/VBA.Compress
@@ -283,5 +277,6 @@ https://github.com/Greedquest/VBA-Toolbox/blob/master/ToolboxSource/TextWriter.c
 https://github.com/nylen/vba-common-library (maybe use tables?)
 https://github.com/vbaidiot/ariawase
 https://github.com/omegastripes/VBA-JSON-parser
+https://github.com/VBA-tools/VBA-JSON.git
 https://github.com/x-vba/xlib
 """
