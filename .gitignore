@@ -3,3 +3,7 @@ output/
 output.zip
 output.xlsb
 ~$*
+
+__pycache__
+VBALib.xlsb
+VBALib.zip

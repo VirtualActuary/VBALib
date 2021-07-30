@@ -1,4 +1,4 @@
-from zebra_vba_packager import Config, Source
+from zebra_vba_packager import Config, Source, compile_xl, runmacro_xl, pack
 from locate import this_dir
 from textwrap import dedent 
 import os
@@ -7,25 +7,7 @@ import shutil
 from contextlib import suppress 
 from pathlib import Path
 
-
-output = this_dir().joinpath("output")
-
-def create_output_workbook():
-    interm_output_xl = this_dir().joinpath("output--compiled.xlsb")
-    output_xl = this_dir().joinpath("output.xlsb")
-
-    vbs_script = this_dir().joinpath("compile-to-workbook", "compile.vbs")
-    empty_xl = this_dir().joinpath("compile-to-workbook", "output.xlsx")
-
-    with suppress(FileNotFoundError):
-        os.unlink(interm_output_xl)
-
-    shutil.copy2(empty_xl, output.joinpath(empty_xl.name))
-    subprocess.call(["cscript", str(vbs_script), output])
-    shutil.copy2(interm_output_xl, output_xl)
-
-    with suppress(FileNotFoundError):
-        os.unlink(interm_output_xl)
+output = this_dir().joinpath("VBALib")
 
 
 def mid_process(source):
@@ -256,10 +238,18 @@ Config(
     output
 )
 
+#Make library into a .xlsb file
+shutil.copy2(empty_src := this_dir().joinpath("add_empty_workbook", "empty.xlsx"),
+             empty_dest := output.joinpath("empty.xlsx"))
+compile_xl(output,
+           xl_final := this_dir().joinpath("VBALib.xlsb"))
+runmacro_xl(xl_final)
+os.remove(empty_dest)
 
-create_output_workbook()
+with suppress(OSError):
+    os.remove(zip_dest := this_dir().joinpath("VBALib.zip"))
 
-
+pack(output, zip_dest, compression_type="zip")
 
 
 """
