@@ -69,7 +69,7 @@ for fpath in common_lib.output_dir.glob("*.bas"):
     i = -1
     while (i := i+1) < len(txt_lines):
         if txt_lines[i].strip().lower().split()[1:2] == [b"declare"]:
-            txt64 = txt_lines[i].replace(b" Declare ", b" Declare PtrSafe ").replace(b"Long", b"LongLong")
+            txt64 = txt_lines[i].replace(b" Declare ", b" Declare PtrSafe ").replace(b"Long", b"LongPtr")
             all_pointer_declare.append(dedent(f"""
             #If VBA7 Then
                 {txt64.decode('utf-8')}
@@ -104,7 +104,7 @@ for fpath in common_lib.output_dir.glob("*.cls"):
 frm1 = b"    Dim bytesRead As Long"
 to1 = b"""
     #If VBA7 Then
-        Dim bytesRead As LongLong
+        Dim bytesRead As LongPtr
     #Else
         Dim bytesRead As Long
     #End If
@@ -113,7 +113,7 @@ to1 = b"""
 frm2 = b"    Dim ret As Long"
 to2 = b"""
     #If VBA7 Then
-        Dim ret As LongLong
+        Dim ret As LongPtr
     #Else
         Dim ret As Long
     #End If

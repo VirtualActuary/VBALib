@@ -9,22 +9,22 @@ Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 
 #If VBA7 Then
-    Private Declare PtrSafe Sub CopyMemory Lib "kernel32" Alias "RtlMoveMemory"  (dest As Any, source As Any, ByVal bytes As LongLong)
+    Private Declare PtrSafe Sub CopyMemory Lib "kernel32" Alias "RtlMoveMemory"  (dest As Any, source As Any, ByVal bytes As LongPtr)
 #Else
     Private Declare Sub CopyMemory Lib "kernel32" Alias "RtlMoveMemory"  (dest As Any, source As Any, ByVal bytes As Long)
 #End If
 #If VBA7 Then
-    Private Declare PtrSafe Function CallNamedPipe Lib "kernel32"  Alias "CallNamedPipeA" (  ByVal lpNamedPipeName As String,  ByVal lpInBuffer As Any, ByVal nInBufferSize As LongLong,  ByRef lpOutBuffer As Any, ByVal nOutBufferSize As LongLong,  ByRef lpBytesRead As LongLong, ByVal nTimeOut As LongLong) As LongLong
+    Private Declare PtrSafe Function CallNamedPipe Lib "kernel32"  Alias "CallNamedPipeA" (  ByVal lpNamedPipeName As String,  ByVal lpInBuffer As Any, ByVal nInBufferSize As LongPtr,  ByRef lpOutBuffer As Any, ByVal nOutBufferSize As LongPtr,  ByRef lpBytesRead As LongPtr, ByVal nTimeOut As LongPtr) As LongPtr
 #Else
     Private Declare Function CallNamedPipe Lib "kernel32"  Alias "CallNamedPipeA" (  ByVal lpNamedPipeName As String,  ByVal lpInBuffer As Any, ByVal nInBufferSize As Long,  ByRef lpOutBuffer As Any, ByVal nOutBufferSize As Long,  ByRef lpBytesRead As Long, ByVal nTimeOut As Long) As Long
 #End If
 #If VBA7 Then
-    Private Declare PtrSafe Function GetCurrentProcessId Lib "kernel32" () As LongLong
+    Private Declare PtrSafe Function GetCurrentProcessId Lib "kernel32" () As LongPtr
 #Else
     Private Declare Function GetCurrentProcessId Lib "kernel32" () As Long
 #End If
 #If VBA7 Then
-    Private Declare PtrSafe Function GetTempPathA Lib "kernel32"  (ByVal nBufferLength As LongLong, ByVal lpBuffer As String) As LongLong
+    Private Declare PtrSafe Function GetTempPathA Lib "kernel32"  (ByVal nBufferLength As LongPtr, ByVal lpBuffer As String) As LongPtr
 #Else
     Private Declare Function GetTempPathA Lib "kernel32"  (ByVal nBufferLength As Long, ByVal lpBuffer As String) As Long
 #End If
@@ -607,7 +607,7 @@ Public Sub SendMessageToListener(msg As String)
     Dim bArray(0 To 0) As Byte
 
     #If VBA7 Then
-        Dim bytesRead As LongLong
+        Dim bytesRead As LongPtr
     #Else
         Dim bytesRead As Long
     #End If
@@ -1378,7 +1378,7 @@ Public Function GetTempPath() As String
     Dim folderName As String
 
     #If VBA7 Then
-        Dim ret As LongLong
+        Dim ret As LongPtr
     #Else
         Dim ret As Long
     #End If
