@@ -1,3 +1,0 @@
-Private Sub Workbook_Open()
-    addEarlyBindings
-End Sub
