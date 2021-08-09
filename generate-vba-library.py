@@ -33,7 +33,7 @@ def mid_process(source):
 common_lib = Config(
     Source(
         git_source="https://github.com/nylen/vba-common-library.git",
-        git_rev="1e21b0d",
+        git_rev="1e21b0d",  # 2014
         glob_include=['*.cls', '*.bas'],
         glob_exclude=['*VBALib_VERSION*'],
         auto_bas_namespace=False,
@@ -121,10 +121,10 @@ to2 = b"""
 
 with common_lib.output_dir.joinpath("concatenated.bas").open("wb") as f:
     f.write(b"\r\n".join(
-        [b'Attribute VB_Name = "VLib"']+
-        all_pointer_declare+
-        [b"Option Explicit"]+
-        all_precode_declare+
+        [b'Attribute VB_Name = "VLib"'] +
+        all_pointer_declare +
+        [b"Option Explicit"] +
+        all_precode_declare +
         all_bas_lines
         ).replace(frm1, to1).replace(frm2, to2)
     )
@@ -156,9 +156,16 @@ shutil.copytree(common_lib.output_dir, common_lib_output_dir2)
 # Aggregate all the rest of the sources
 #-----------------------------------------------------------------------
 Config(
+    ## TODO: why doesn't auto_cls_rename work?
+    #Source(
+    #    git_source="https://github.com/sancarn/stdVBA.git",
+    #    git_rev="50fdb99",  # 2021-07
+    #    glob_include=['src/*.cls'],
+    #    auto_cls_rename=True
+    #),
     Source(
         git_source="https://github.com/ws-garcia/VBA-CSV-interface.git",
-        git_rev="v3.1.0",
+        git_rev="v3.1.5",  # 2021-07
         glob_include=['**/src/*.cls'],
         rename_overwrites={
             "ECPArrayList": "zWsArray",
@@ -169,7 +176,7 @@ Config(
     ),
     Source(
         git_source="https://github.com/GustavBrock/VBA.Compress.git",
-        git_rev="052b889",
+        git_rev="052b889",  # 2020
         glob_include=['**/*.bas'],
         mid_process=mid_process,
         rename_overwrites={
@@ -181,12 +188,11 @@ Config(
     # The following two projects are dependant on each other:
     Source(
         git_source="https://github.com/VBA-tools/VBA-JSON.git",
-        git_rev="v2.3.1",
+        git_rev="v2.3.1",  # 2019
         glob_include=['**/JsonConverter.bas'],
         mid_process=mid_process,
         rename_overwrites={
-            "JsonConverter": "Json", # bas file
-            #"Dictionary": "zJsonDict",
+            "JsonConverter": "Json",  # bas file
         },
     ),
     #Source(
@@ -199,7 +205,7 @@ Config(
     #),
     Source(
         git_source="https://github.com/sdkn104/VBA-CSV.git",
-        git_rev="48d98d6",
+        git_rev="48d98d6",  # 2020
         glob_include=['**/CSVUtils.bas'],
         mid_process=mid_process,
         rename_overwrites={
@@ -209,7 +215,7 @@ Config(
     ),
     Source(
         git_source="https://github.com/todar/VBA-Strings",
-        git_rev="6d25dad",
+        git_rev="6d25dad",  # 2020
         glob_include=["*.bas"],
         rename_overwrites={
             "StringFunctions": "StrUtils"
@@ -268,5 +274,5 @@ https://github.com/nylen/vba-common-library (maybe use tables?)
 https://github.com/vbaidiot/ariawase
 https://github.com/omegastripes/VBA-JSON-parser
 https://github.com/VBA-tools/VBA-JSON.git
-https://github.com/x-vba/xlib
+https://github.com/x-vba/xlib <--------------- << Combine into single namespace >>
 """
