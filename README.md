@@ -20,7 +20,7 @@ https://github.com/GustavBrock/VBA.Compress
 zJson:
 https://github.com/VBA-tools/VBA-JSON
 
-zCscUtils:
+zCsvUtils:
 https://github.com/sdkn104/VBA-CSV
 
 zStrUtils:
