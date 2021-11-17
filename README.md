@@ -25,21 +25,3 @@ https://github.com/sdkn104/VBA-CSV
 
 zStrUtils:
 https://github.com/todar/VBA-Strings
-
-
-Useful VBA projects to choose from
-https://github.com/sancarn/stdVBA.git (looks promising) <br />
-https://github.com/sdkn104/VBA-CSV <br />
-https://github.com/VBA-tools <br />
-https://github.com/GustavBrock/VBA.Compress <br />
-https://github.com/AllenMattson/VBA (???) <br />
-https://github.com/carvetighter/VBA-Code-Library <br />
-https://github.com/Zadigo/vba_codes <br />
-https://github.com/topics/vba-modules (further collection) <br />
-https://github.com/Greedquest/VBA-Toolbox (Next level stuff, but bit risky:  <br />
-https://github.com/Greedquest/VBA-Toolbox/blob/master/ToolboxSource/TextWriter.cls <br />
-https://github.com/nylen/vba-common-library (maybe use tables?) <br />
-https://github.com/vbaidiot/ariawase <br />
-https://github.com/omegastripes/VBA-JSON-parser <br />
-https://github.com/VBA-tools/VBA-JSON.git <br />
-https://github.com/x-vba/xlib <--------------- << Combine into single namespace >> <br />
