@@ -11,17 +11,20 @@
 zVLibLink - zVLibList - zVLibTable - zVLib
 https://github.com/nylen/vba-common-library
 
-zWsArray - zWsCsvConf - zWsCsvInterface - zWsStream:
+zWsCsvInterface (incl. zWsUdFunctions, zWsStream, zWsExpressions, zWsCsvSniffer, zWsCsvDialect, zWsCsvConf, zWsCallBack, zWsArray, zVLibTable, zVLibList, zVLibLink):
 https://github.com/ws-garcia/VBA-CSV-interface
 
-zCompress:
+Compress:
 https://github.com/GustavBrock/VBA.Compress
 
-zJson:
+Json:
 https://github.com/VBA-tools/VBA-JSON
 
-zCsvUtils:
+CsvUtils:
 https://github.com/sdkn104/VBA-CSV
 
-zStrUtils:
+StrUtils:
 https://github.com/todar/VBA-Strings
+
+Fn:
+https://github.com/VirtualActuary/MiscVBAFunctions.git
