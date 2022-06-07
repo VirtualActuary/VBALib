@@ -1,3 +1,5 @@
+from copy import copy
+
 from zebra_vba_packager import Config, Source, compile_xl, runmacro_xl, pack
 from locate import this_dir
 from textwrap import dedent 
@@ -24,9 +26,57 @@ def mid_process(source):
                     line = line[0:ii] + b"Private" + line[ii+len(b"public"):]
                     txt_lines[i] = line
 
+
         if do_overwrite:
             with pth.open("wb") as f:
                 f.write((b"\r\n".join(txt_lines)))
+
+
+def office64_ptr_compatability(bin_lines):
+    bin_lines = copy(bin_lines)
+
+    # strip trailing ending lines
+    i = -1
+    while (i := i+1) < len(bin_lines):
+        if bin_lines[i].strip().lower().split()[1:2] == [b"declare"]:
+            j = i
+            for j in range(i, len(bin_lines)):
+                if not bin_lines[j].strip().endswith(b"_"):
+                    break
+            line = b" ".join([bin_lines[ii].strip().rstrip(b"_") for ii in range(i,j+1)])
+
+            bin_lines[i] = line
+            for ii in range(i,j):
+                bin_lines.pop(i+1)
+
+    i = -1
+    while (i := i+1) < len(bin_lines):
+        if bin_lines[i].strip().lower().split()[1:2] == [b"declare"]:
+            txt64 = bin_lines[i].replace(b" Declare ", b" Declare PtrSafe ").replace(b"Long", b"LongPtr")
+            all_pointer_declare.append(dedent(f"""
+            #If VBA7 Then
+                {txt64.decode('utf-8')}
+            #Else
+                {bin_lines[i].decode('utf-8')}
+            #End If
+            """).strip().encode("utf-8"))
+
+            bin_lines.pop(i)
+            i -= 1
+
+    return bin_lines
+
+
+def functions_start(bin_lines):
+    i = -1
+    while (i := i+1) < len(bin_lines):
+        funcdecl = bin_lines[i].lower().strip().split()[:2]
+        if (funcdecl[:1] == [b"function"] or funcdecl[:1] == [b"sub"] or
+            funcdecl == [b"private", b"function"] or funcdecl == [b"private", b"sub"] or
+            funcdecl == [b"public", b"function"] or funcdecl == [b"public", b"sub"]):
+            break
+
+    return i
 
 
 # Seperate step for this library
@@ -52,42 +102,8 @@ for fpath in common_lib.output_dir.glob("*.bas"):
     with fpath.open("rb") as f:
         txt_lines = f.read().split(b"\r\n")
 
-    # strip trailing ending lines
-    i = -1
-    while (i := i+1) < len(txt_lines):
-        if txt_lines[i].strip().lower().split()[1:2] == [b"declare"]:
-            j = i
-            for j in range(i, len(txt_lines)):
-                if not txt_lines[j].strip().endswith(b"_"):
-                    break
-            line = b" ".join([txt_lines[ii].strip().rstrip(b"_") for ii in range(i,j+1)])
-
-            txt_lines[i] = line
-            for ii in range(i,j):
-                txt_lines.pop(i+1)
-
-    i = -1
-    while (i := i+1) < len(txt_lines):
-        if txt_lines[i].strip().lower().split()[1:2] == [b"declare"]:
-            txt64 = txt_lines[i].replace(b" Declare ", b" Declare PtrSafe ").replace(b"Long", b"LongPtr")
-            all_pointer_declare.append(dedent(f"""
-            #If VBA7 Then
-                {txt64.decode('utf-8')}
-            #Else
-                {txt_lines[i].decode('utf-8')}
-            #End If
-            """).strip().encode("utf-8"))
-
-            txt_lines.pop(i)
-            i -= 1
-
-    i = -1
-    while (i := i+1) < len(txt_lines):
-        funcdecl = txt_lines[i].lower().strip().split()[:2]
-        if (funcdecl[:1] == [b"function"] or funcdecl[:1] == [b"sub"] or
-            funcdecl == [b"private", b"function"] or funcdecl == [b"private", b"sub"] or
-            funcdecl == [b"public", b"function"] or funcdecl == [b"public", b"sub"]):
-            break
+    txt_lines = office64_ptr_compatability(txt_lines)
+    i = functions_start(txt_lines)
 
     all_precode_declare.extend([j for j in txt_lines[1:i] if not j.lower().strip().startswith(b"option ")])
     all_bas_lines.extend(txt_lines[i:])
@@ -152,9 +168,9 @@ shutil.rmtree(common_lib_output_dir2, ignore_errors=True)
 shutil.copytree(common_lib.output_dir, common_lib_output_dir2)
 
 
-#-----------------------------------------------------------------------
+# -----------------------------------------------------------------------
 # Aggregate all the rest of the sources
-#-----------------------------------------------------------------------
+# -----------------------------------------------------------------------
 Config(
     ## TODO: why doesn't auto_cls_rename work?
     #Source(
@@ -164,13 +180,25 @@ Config(
     #    auto_cls_rename=True
     #),
     Source(
+        git_source="https://github.com/VirtualActuary/SHA256-and-MD5-for-VBA.git",
+        glob_include=["*.cls"],
+        rename_overwrites={
+            "HS256": "z__Hash"
+        }
+    ),
+    Source(
         git_source="https://github.com/ws-garcia/VBA-CSV-interface.git",
-        git_rev="v3.1.5",  # 2021-07
+        git_rev="1b23247",  # 2022-03
         glob_include=['**/src/*.cls'],
         rename_overwrites={
-            "ECPArrayList": "zWsArray",
-            "ECPTextStream": "zWsStream",
-            "parserConfig": "zWsCsvConf",
+            "CSVArrayList": "zWsArray",
+            "CSVcallBack": "zWsCallBack",
+            "CSVdialect": "zWsCsvDialect",
+            "CSVexpressions": "zWsExpressions",
+            "CSVparserConfig": "zWsCsvConf",
+            "CSVSniffer": "zWsCsvSniffer",
+            "CSVTextStream": "zWsStream",
+            "CSVudFunctions": "zWsUdFunctions",
             "CSVinterface": "zWsCsvInterface",  # useful
         }
     ),
@@ -233,13 +261,22 @@ Config(
         glob_exclude=["z__*"],
         rename_overwrites=vlib_renames
     ),
+    #Source(
+    #    path_source=str(this_dir().joinpath("add_early_bindings")),
+    #    auto_bas_namespace=False,
+    #    rename_overwrites={
+    #        "EarlyBindings": "z__EarlyBindings"
+    #    }
+    #),
     Source(
-        path_source=str(this_dir().joinpath("add_early_bindings")),
-        auto_bas_namespace=False,
-        rename_overwrites={
-            "EarlyBindings": "z__EarlyBindings"
-        }
-    )
+        git_source = "https://github.com/VirtualActuary/MiscVBAFunctions.git",
+        git_rev = "c045fab",
+        glob_include=['MiscVBAFunctions/**/*.bas', 'MiscVBAFunctions/**/*.cls'],
+        glob_exclude=["**/Test__*"],
+        combine_bas_files="Fn",
+        auto_bas_namespace=True,
+        auto_cls_rename=False,
+    ),
 ).run(
     output
 )
