@@ -1,3 +1,4 @@
 Private Sub Workbook_Open()
-    addEarlyBindings
+    Dim eb as New z__addEarlyBindings
+    eb.addEarlyBindings
 End Sub

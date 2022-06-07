@@ -1,11 +1,12 @@
-Attribute VB_Name = "EarlyBindings"
-
-Option Explicit
-Option Compare Text
-
-'https://msdn.microsoft.com/en-us/library/aa390387(v=vs.85).aspx
-Private Const HKCR = &H80000000
-
+VERSION 1.0 CLASS
+BEGIN
+  MultiUse = -1  'True
+END
+Attribute VB_Name = "z__addEarlyBindings"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = False
+Attribute VB_PredeclaredId = False
+Attribute VB_Exposed = False
 
 ' Add references for this project programatically. If you are uncertain what to put here,
 ' Go to Tools -> References and use the filename of the reference (eg. msado15.dll for
@@ -14,7 +15,7 @@ Private Const HKCR = &H80000000
 '**********************************************************************************
 '* Add selected references to this project
 '**********************************************************************************
-Sub addEarlyBindings()
+Public Sub addEarlyBindings()
     On Error GoTo ErrorHandler
         If Not isBindingNameLoaded("ADODB") Then
             'Microsoft ActiveX Data Objects 6.1
@@ -42,6 +43,13 @@ Sub addEarlyBindings()
             'Microsoft Shell Controls And Automation
             ThisWorkbook.VBProject.References.addFromGuid "{50A7E9B0-70EF-11D1-B75A-00A0C90564FE}", 1, 0
         End If
+        
+        ' add Rubberduck on the developer side:
+        If Not isBindingNameLoaded("Rubberduck AddIn") Then
+            'Microsoft Shell Controls And Automation
+            ThisWorkbook.VBProject.References.addFromGuid "{E07C841C-43F0-3B33-B105-9B8188A6F040}", 2, 5
+        End If
+        
     Exit Sub
 ErrorHandler:
 End Sub
@@ -50,12 +58,12 @@ End Sub
 '**********************************************************************************
 '* Verify if a reference is loaded
 '**********************************************************************************
-Function isBindingNameLoaded(ref As String) As Boolean
+Public Function isBindingNameLoaded(ref As String) As Boolean
     ' https://www.ozgrid.com/forum/index.php?thread/62123-check-if-ref-library-is-loaded/&postID=575116#post575116
     isBindingNameLoaded = False
     Dim xRef As Variant
     For Each xRef In ThisWorkbook.VBProject.References
-        If xRef.Name = ref Then
+        If LCase(xRef.Name) = LCase(ref) Then
             isBindingNameLoaded = True
         End If
     Next xRef
@@ -66,7 +74,7 @@ End Function
 '**********************************************************************************
 '* Print all current active GUIDs
 '**********************************************************************************
-Sub printAllEarlyBindings()
+Private Sub printAllEarlyBindings()
     ' https://www.ozgrid.com/forum/index.php?thread/62123-check-if-ref-library-is-loaded/&postID=575116#post575116
     Dim xRef As Variant
     For Each xRef In ThisWorkbook.VBProject.References
@@ -76,7 +84,8 @@ Sub printAllEarlyBindings()
         Debug.Print xRef.Minor
         Debug.Print xRef.FullPath
         Debug.Print xRef.GUID
-        Debug.Print ""
+        Debug.Print vbNullString
     Next xRef
     
 End Sub
+

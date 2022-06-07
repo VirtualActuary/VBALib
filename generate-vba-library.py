@@ -261,13 +261,22 @@ Config(
         glob_exclude=["z__*"],
         rename_overwrites=vlib_renames
     ),
+    #Source(
+    #    path_source=str(this_dir().joinpath("add_early_bindings")),
+    #    auto_bas_namespace=False,
+    #    rename_overwrites={
+    #        "EarlyBindings": "z__EarlyBindings"
+    #    }
+    #),
     Source(
-        path_source=str(this_dir().joinpath("add_early_bindings")),
-        auto_bas_namespace=False,
-        rename_overwrites={
-            "EarlyBindings": "z__EarlyBindings"
-        }
-    )
+        git_source = "https://github.com/VirtualActuary/MiscVBAFunctions.git",
+        git_rev = "c045fab",
+        glob_include=['MiscVBAFunctions/**/*.bas', 'MiscVBAFunctions/**/*.cls'],
+        glob_exclude=["**/Test__*"],
+        combine_bas_files="Fn",
+        auto_bas_namespace=True,
+        auto_cls_rename=False,
+    ),
 ).run(
     output
 )
