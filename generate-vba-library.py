@@ -183,7 +183,7 @@ Config(
         git_source="https://github.com/VirtualActuary/SHA256-and-MD5-for-VBA.git",
         glob_include=["*.cls"],
         rename_overwrites={
-            "HS256": "z__Hash__"
+            "HS256": "z__Hash"
         }
     ),
     Source(

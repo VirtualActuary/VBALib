@@ -4,7 +4,7 @@ Public addEarlyBindings As New z__addEarlyBindings
 Public Compress As New z__Compress
 Public CsvUtils As New z__CsvUtils
 Public Fn As New z__Fn
-Public Hash As New z__Hash__
+Public Hash As New z__Hash
 Public Json As New z__Json
 Public StrUtils As New z__StrUtils
 Public VLib As New z__VLib
