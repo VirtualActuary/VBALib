@@ -156,6 +156,8 @@ Public fso As New FileSystemObject
 'Dim ColumnName
 'Dim Name
 'Dim Path
+'Dim After
+'Dim Rows
 
 '*************** MiscArray
 Public Function ErrorToNullStringTransformation(tableArr() As Variant) As Variant
@@ -426,7 +428,7 @@ Public Function IsValueInCollection(col As Collection, val As Variant, Optional 
             If CaseSensitive Then
                 IsValueInCollection = ValI = val
             Else
-                IsValueInCollection = LCase(ValI) = LCase(val)
+                IsValueInCollection = VBA.LCase(ValI) = VBA.LCase(val)
             End If
             ' exit if found
             If IsValueInCollection Then Exit Function
@@ -1042,7 +1044,7 @@ Public Function OpenWorkbook( _
         
         ' check if the workbook is actually the one specified in path
         ' use AbsolutePathName to remove any relative path references  (\..\ / \.\)
-        If LCase(OpenWorkbook.FullName) <> LCase(fso.GetAbsolutePathName(Path)) Then
+        If VBA.LCase(OpenWorkbook.FullName) <> VBA.LCase(fso.GetAbsolutePathName(Path)) Then
             Debug.Print fso.GetAbsolutePathName(Path)
             Err.Raise 457, , "Existing workbook with the same name is already open: '" & fso.GetFileName(Path) & "'"
         End If
@@ -1069,7 +1071,7 @@ Public Function LastRow(WS As Worksheet) As Integer
         LastRow = 0
         Exit Function
     End If
-    LastRow = WS.Cells.Find(What:="*", after:=WS.Cells(1, 1), LookIn:=xlValues, lookat:=xlPart, SearchOrder:=xlByRows, SearchDirection:=xlPrevious).row
+    LastRow = WS.Cells.Find(What:="*", After:=WS.Cells(1, 1), LookIn:=xlValues, lookat:=xlPart, SearchOrder:=xlByRows, SearchDirection:=xlPrevious).row
 End Function
 
 Public Function LastColumn(WS As Worksheet) As Integer
@@ -1086,7 +1088,7 @@ Public Function LastColumn(WS As Worksheet) As Integer
         LastColumn = 0
         Exit Function
     End If
-    LastColumn = WS.Cells.Find(What:="*", after:=WS.Cells(1, 1), LookIn:=xlValues, lookat:=xlPart, SearchOrder:=xlByColumns, SearchDirection:=xlPrevious).column
+    LastColumn = WS.Cells.Find(What:="*", After:=WS.Cells(1, 1), LookIn:=xlValues, lookat:=xlPart, SearchOrder:=xlByColumns, SearchDirection:=xlPrevious).Column
 End Function
 
 Public Function LastCell(WS As Worksheet) As Range
@@ -1101,16 +1103,14 @@ Public Function LastCell(WS As Worksheet) As Range
     ' Returns:
     '   The last cell in a worksheet as a range.
     
-    Dim row, column As Integer
+    Dim row, Column As Integer
     row = LastRow(WS)
-    column = LastColumn(WS)
-    If row = 0 Or column = 0 Then
-        Dim EmptyRange As Range
-        Set LastCell = EmptyRange
+    Column = LastColumn(WS)
+    If row = 0 Or Column = 0 Then
         Exit Function
     End If
     
-    Set LastCell = WS.Range(Cells(row, column), Cells(row, column))
+    Set LastCell = WS.Cells(row, Column)
 End Function
 
 Public Function RelevantRange(WS As Worksheet) As Range
@@ -1124,15 +1124,14 @@ Public Function RelevantRange(WS As Worksheet) As Range
     ' Returns:
     '   The range of active cells in the selected Worksheet.
     
-    Dim row, column As Integer
-    row = LastRow(WS)
-    column = LastColumn(WS)
-    If row = 0 Or column = 0 Then
-        Dim EmptyRange As Range
-        Set RelevantRange = EmptyRange
+    Dim LastCellEntry As Range
+    Set LastCellEntry = LastCell(WS)
+    
+    If LastCellEntry Is Nothing Then
         Exit Function
     End If
-    Set RelevantRange = WS.Range(Cells(1, 1), Cells(row, column))
+    
+    Set RelevantRange = WS.Range(WS.Cells(1, 1), LastCellEntry)
 End Function
 
 '*************** MiscFreezePanes
@@ -1598,6 +1597,18 @@ Public Function getQuery(Name As String, Optional WB As Workbook) As WorkbookQue
     
 End Function
 
+Public Function GetQueryFormula(Name As String, Optional WB As Workbook) As String
+    ' Returns the Power Query M formula of a WorkbookQuery
+    '
+    ' Args:
+    '   Name: Name of the Query to look for.
+    '   WB: Selected WorkBook.
+    '
+    ' Returns:
+    '   The Power Query M formula of the WorkbookQuery
+    GetQueryFormula = getQuery(Name, WB).Formula
+End Function
+
 Public Function updateQuery(Name As String, queryFormula As String, Optional WB As Workbook) As WorkbookQuery
     ' Update the selected Query. If the Query doesn't exist, a new Query is added.
     '
@@ -1615,7 +1626,7 @@ Public Function updateQuery(Name As String, queryFormula As String, Optional WB 
     
     If doesQueryExist(Name, WB) Then
         Set updateQuery = getQuery(Name, WB)
-        updateQuery.formula = queryFormula
+        updateQuery.Formula = queryFormula
     Else
         Set updateQuery = WB.queries.Add(Name, queryFormula)
     End If
@@ -1910,7 +1921,7 @@ Public Function HasLO(Name As String, Optional WB As Workbook) As Boolean
     
     For Each WS In WB.Worksheets
         For Each LO In WS.ListObjects
-            If LCase(Name) = LCase(LO.Name) Then
+            If VBA.LCase(Name) = VBA.LCase(LO.Name) Then
                 HasLO = True
                 Exit Function
             End If
@@ -1937,7 +1948,7 @@ Public Function GetLO(Name As String, Optional WB As Workbook) As ListObject
     
     For Each WS In WB.Worksheets
         For Each LO In WS.ListObjects
-            If LCase(Name) = LCase(LO.Name) Then
+            If VBA.LCase(Name) = VBA.LCase(LO.Name) Then
                 Set GetLO = LO
                 Exit Function
             End If
@@ -2269,7 +2280,7 @@ Public Function GetTableColumnRange( _
     
     Dim I As Long
     For I = 1 To TableR.Columns.Count
-        If LCase(TableR(1, I).Value) = LCase(Column) Then
+        If VBA.LCase(TableR(1, I).Value) = VBA.LCase(Column) Then
             GoTo found
         End If
     Next I

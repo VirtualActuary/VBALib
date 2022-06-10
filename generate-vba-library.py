@@ -270,7 +270,7 @@ Config(
     #),
     Source(
         git_source = "https://github.com/VirtualActuary/MiscVBAFunctions.git",
-        git_rev = "c045fab",
+        git_rev = "8e5e8f3",
         glob_include=['MiscVBAFunctions/**/*.bas', 'MiscVBAFunctions/**/*.cls'],
         glob_exclude=["**/Test__*"],
         combine_bas_files="Fn",
