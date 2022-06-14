@@ -2,7 +2,7 @@ VERSION 1.0 CLASS
 BEGIN
   MultiUse = -1  'True
 END
-Attribute VB_Name = "zWsCsvConf"
+Attribute VB_Name = "z_WsCsvParserConfig"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
@@ -35,7 +35,7 @@ Private P_BUFFERSISE As Single
 Private P_COMMENTSTOKEN As Long
 Private P_DELIMITERSGUESSING As Boolean
 Private P_DELIMITERSTOGUESS() As String
-Private P_DIALECT As zWsCsvDialect
+Private P_DIALECT As z_WsCsvDialect
 Private P_DYNAMIC_TYPING As Boolean
 Private P_ENDINGRECORD As Long
 Private P_HEADERS As Boolean
@@ -97,10 +97,10 @@ End Property
 Public Property Let delimitersToGuess(value() As String)
     P_DELIMITERSTOGUESS = value
 End Property
-Public Property Get dialect() As zWsCsvDialect
+Public Property Get dialect() As z_WsCsvDialect
     Set dialect = P_DIALECT
 End Property
-Public Property Set dialect(dialectObj As zWsCsvDialect)
+Public Property Set dialect(dialectObj As z_WsCsvDialect)
     If Not dialectObj Is Nothing Then
         Set P_DIALECT = dialectObj
     End If
@@ -211,10 +211,10 @@ Public Property Let utf8EncodedFile(value As Boolean)
 End Property
 '////////////////////////////////////////////////////////////////////////////////////////////
 '#
-Public Function CopyConfig() As zWsCsvConf
-    Dim tmpResult As zWsCsvConf
+Public Function CopyConfig() As z_WsCsvParserConfig
+    Dim tmpResult As z_WsCsvParserConfig
     
-    Set tmpResult = New zWsCsvConf
+    Set tmpResult = New z_WsCsvParserConfig
     tmpResult.bufferSize = P_BUFFERSISE
     tmpResult.skipCommentLines = P_SKIP_COMMENTS
     tmpResult.skipEmptyLines = P_SKIP_EMPTYLINES
@@ -264,7 +264,7 @@ Private Sub Class_Initialize()
                                         P_DELIMITERSTOGUESS(2) = vbTab: _
                                         P_DELIMITERSTOGUESS(3) = CHR_PIPE: _
                                         P_DELIMITERSTOGUESS(4) = CHR_COLON
-    Set P_DIALECT = New zWsCsvDialect
+    Set P_DIALECT = New z_WsCsvDialect
     P_DYNAMIC_TYPING = False
     P_ENDINGRECORD = 0&
     P_HEADERS = True

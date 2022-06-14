@@ -2,7 +2,7 @@ VERSION 1.0 CLASS
 BEGIN
   MultiUse = -1  'True
 END
-Attribute VB_Name = "zWsCsvInterface"
+Attribute VB_Name = "z_WsCsvInterface"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
@@ -31,10 +31,10 @@ Private Const CHR_TILDE As String = "~"
 '#
 '////////////////////////////////////////////////////////////////////////////////////////////
 ' PROPERTIES VARIABLES:
-Private config As zWsCsvConf '--------------Parser configuration object
-Private CSVstream As zWsStream '-------------Enables file Stream
-Private P_CSV_DATA As zWsArray '-------------Holds the CSV data for current instance
-Private P_CSV_HEADER As zWsArray '-----------Holds the CSV header
+Private config As z_WsCsvParserConfig '--------------Parser configuration object
+Private CSVstream As z_WsCsvTextStream '-------------Enables file Stream
+Private P_CSV_DATA As z_WsCsvArrayList '-------------Holds the CSV data for current instance
+Private P_CSV_HEADER As z_WsCsvArrayList '-----------Holds the CSV header
 Private P_ERROR_DESC As String '-----------------Holds the Error Description
 Private P_ERROR_NUMBER As Long '-----------------Holds the Error number
 Private P_ERROR_SOURCE As String '---------------Holds the Error source
@@ -80,7 +80,7 @@ Private UseUnixEscapeSeq As Boolean '------Determines when to use or not to use 
 ' SEQUENTIAL READ VARIABLES
 Private static_ASCIIcharw As Long
 Private static_commToken As Long
-Private static_CSVstream As zWsStream
+Private static_CSVstream As z_WsCsvTextStream
 Private static_dTTargets() As Variant
 Private static_dTTemplate() As Variant
 Private static_dynamicType As Boolean
@@ -109,13 +109,13 @@ Private static_LenCurrentIndex As Long
 Private static_MaxReqIndex As Long
 Private static_NotEvenEscapeChrNumber As Boolean
 Private static_OpenedToken As Boolean
-Private static_outputList As zWsArray
+Private static_outputList As z_WsCsvArrayList
 Private static_OverStringPointer As Long, static_hpointer As Long
 Private static_QuoteChar As String
 Private static_RecordDelimiter As String
 Private static_RecordEndReached As Boolean
 Private static_RecordsCount As Long
-Private static_RecordToken As zWsArray
+Private static_RecordToken As z_WsCsvArrayList
 Private static_RequestedFieldsArray() As Long
 Private static_SearchBeginningMark As Long
 Private static_SeqReadStarted As Boolean
@@ -126,7 +126,7 @@ Private static_TargetsDefined As Boolean
 Private static_TemplateDefined As Boolean
 Private static_tmpCSV() As String
 Private static_tmpRequested() As Variant
-Private static_tmpToken As zWsArray
+Private static_tmpToken As z_WsCsvArrayList
 Private static_TokenBeginningPos As Long
 Private static_TokenEndingPos As Long
 Private static_TokenEndReached As Boolean
@@ -164,7 +164,7 @@ Public Property Get exportSuccess() As Boolean
 Attribute exportSuccess.VB_Description = "Gets the status for the last export operation."
     exportSuccess = P_SUCCESSFUL_EXPORT
 End Property
-Public Property Get csvHeader() As zWsArray
+Public Property Get csvHeader() As z_WsCsvArrayList
 Attribute csvHeader.VB_Description = "Gets the imported CSV/TSV headers."
     Set csvHeader = P_CSV_HEADER
 End Property
@@ -182,18 +182,18 @@ Attribute item.VB_UserMemId = 0
             item = P_CSV_DATA(CLng(Index(0)))(CLng(Index(1)))
     End Select
 End Property
-Public Property Get items() As zWsArray
+Public Property Get items() As z_WsCsvArrayList
 Attribute items.VB_Description = "Gets or sets the result array over the current instance."
     Set items = P_CSV_DATA
 End Property
-Public Property Set items(values As zWsArray)
+Public Property Set items(values As z_WsCsvArrayList)
     Set P_CSV_DATA = values
 End Property
-Public Property Get parseConfig() As zWsCsvConf
+Public Property Get parseConfig() As z_WsCsvParserConfig
 Attribute parseConfig.VB_Description = "Gets or sets, the parser configuration object."
     Set parseConfig = config
 End Property
-Public Property Set parseConfig(configuration As zWsCsvConf)
+Public Property Set parseConfig(configuration As z_WsCsvParserConfig)
     Set config = configuration
 End Property
 Public Property Get uniformLengthRecords() As Boolean
@@ -219,8 +219,8 @@ Private Sub Class_Terminate()
     Set P_CSV_HEADER = Nothing
 End Sub
 Public Sub ClearData()
-    Set P_CSV_DATA = New zWsArray
-    Set P_CSV_HEADER = New zWsArray
+    Set P_CSV_DATA = New z_WsCsvArrayList
+    Set P_CSV_HEADER = New z_WsCsvArrayList
 End Sub
 Public Sub CloseSeqReader()
     static_SeqReadStarted = False
@@ -235,11 +235,11 @@ Public Function CSVsubsetSplit(FilePath As String, _
                                 Optional Headers As Boolean = True) As Collection
     Dim CreatedFiles As Collection
     Dim CSVhead As Variant
-    Dim CSVreader As zWsCsvInterface
-    Dim CSVstream As zWsStream
-    Dim CSVwriter As zWsCsvInterface
-    Dim curItems As zWsArray
-    Dim ExportSubSet As zWsArray
+    Dim CSVreader As z_WsCsvInterface
+    Dim CSVstream As z_WsCsvTextStream
+    Dim CSVwriter As z_WsCsvInterface
+    Dim curItems As z_WsCsvArrayList
+    Dim ExportSubSet As z_WsCsvArrayList
     Dim fExtension As String
     Dim fileCreatedFlag As Boolean
     Dim FileNameAndExtension() As String
@@ -249,17 +249,17 @@ Public Function CSVsubsetSplit(FilePath As String, _
     Dim i As Long
     Dim keyIndex As Long
     Dim outputPath As String
-    Dim readerConf As zWsCsvConf
+    Dim readerConf As z_WsCsvParserConfig
     Dim tmpVar As Variant
     Dim usedFields As Long
-    Dim writterConf As zWsCsvConf
+    Dim writterConf As z_WsCsvParserConfig
     
     Set CreatedFiles = New Collection
-    Set CSVreader = New zWsCsvInterface
-    Set CSVwriter = New zWsCsvInterface
+    Set CSVreader = New z_WsCsvInterface
+    Set CSVwriter = New z_WsCsvInterface
     Set readerConf = CSVreader.parseConfig
-    Set CSVstream = New zWsStream
-    Set ExportSubSet = New zWsArray
+    Set CSVstream = New z_WsCsvTextStream
+    Set ExportSubSet = New z_WsCsvArrayList
     
     On Error GoTo CSVsubsetSplit_ErrHandler
     If FilePath <> vbNullString Then
@@ -398,7 +398,7 @@ CSVsubsetSplit_MissingCSVfile:
     P_ERROR_SOURCE = "CSVinterface"
     GoTo CSVsubsetSplit_ErrHandler
 End Function
-Public Function Dedupe(keys As String) As zWsArray
+Public Function Dedupe(keys As String) As z_WsCsvArrayList
     On Error GoTo ErrHandler_Dedupe
     If P_SUCCESSFUL_IMPORT Then
         Dim aIndexes() As String
@@ -413,7 +413,7 @@ Public Function Dedupe(keys As String) As zWsArray
                 IndexesCollection.Add dRecCounter, DedupeKeysMerge(dRecCounter, aIndexes)
             Next dRecCounter
             Dim colItem As Variant
-            Set Dedupe = New zWsArray
+            Set Dedupe = New z_WsCsvArrayList
             For Each colItem In IndexesCollection
                 Dedupe.Add P_CSV_DATA.item(CLng(colItem))
             Next
@@ -443,7 +443,7 @@ Private Function DedupeKeysMerge(aIndex As Long, keys As Variant) As String
     DedupeKeysMerge = Join$(tmpResult, "|")
 End Function
 Public Sub DumpToArray(OutPutArray() As Variant, _
-                        Optional ByRef DataSource As zWsArray = Nothing)
+                        Optional ByRef DataSource As z_WsCsvArrayList = Nothing)
     If DataSource Is Nothing Then
         Set DataSource = P_CSV_DATA
     End If
@@ -454,7 +454,7 @@ Public Sub DumpToArray(OutPutArray() As Variant, _
     End If
 End Sub
 Public Sub DumpToJaggedArray(OutPutArray() As Variant, _
-                                Optional ByRef DataSource As zWsArray = Nothing)
+                                Optional ByRef DataSource As z_WsCsvArrayList = Nothing)
     If DataSource Is Nothing Then
         Set DataSource = P_CSV_DATA
     End If
@@ -465,7 +465,7 @@ End Sub
 Public Sub DumpToSheet(Optional WBookName As String, _
                         Optional SheetName As String, _
                         Optional rngName As String = "A1", _
-                        Optional ByRef DataSource As zWsArray = Nothing)
+                        Optional ByRef DataSource As z_WsCsvArrayList = Nothing)
     On Error Resume Next
     Dim colNumber As Long
     
@@ -574,14 +574,14 @@ Private Sub EscapeField(ByRef FieldString As String, _
     End If
 End Sub
 Public Sub ExportToCSV(ByRef csvArray As Variant, _
-                        Optional pconfig As zWsCsvConf = Nothing, _
+                        Optional pconfig As z_WsCsvParserConfig = Nothing, _
                         Optional PassControlToOS As Boolean = True, _
                         Optional enableDelimitersSniffing As Boolean = True, _
                         Optional EnforcedQuotation As Boolean = False)
     On Error GoTo ErrHandler_ExportToCSV
     If PassControlToOS Then DoEvents 'Pass the control to the Operative System
     If IsArray(csvArray) Or LCase(TypeName(csvArray)) = "csvarraylist" Then
-        Dim curConfig As zWsCsvConf
+        Dim curConfig As z_WsCsvParserConfig
         '@----------------------------------------------------------------------------
         'Open a conection to the file and seek its end
         If pconfig Is Nothing Then
@@ -589,9 +589,9 @@ Public Sub ExportToCSV(ByRef csvArray As Variant, _
         Else
             Set curConfig = pconfig
         End If
-        Dim CSVstream As zWsStream
+        Dim CSVstream As z_WsCsvTextStream
         Dim EOLB As EndLineChar
-        Set CSVstream = New zWsStream
+        Set CSVstream = New z_WsCsvTextStream
         If FileExists(curConfig.path) Then
             If enableDelimitersSniffing Then
                 Set curConfig.dialect = SniffDelimiters(curConfig)
@@ -659,17 +659,17 @@ End Function
 ''' <param name="FilePath">Full file path, including file extension.</param>
 ''' <param name="ExcludeFirstRecord">Used if the user wants to exclude the headers.</param>
 Public Function Filter(Pattern As String, Optional FilePath As String = vbNullString, _
-                            Optional ExcludeFirstRecord As Boolean = True) As zWsArray
+                            Optional ExcludeFirstRecord As Boolean = True) As z_WsCsvArrayList
     
-    Dim CSVparser As zWsCsvInterface
+    Dim CSVparser As z_WsCsvInterface
     
-    Set Filter = New zWsArray
+    Set Filter = New z_WsCsvArrayList
     If FilePath <> vbNullString Then 'Filter CSV file
-        Dim StreamReader As zWsStream
+        Dim StreamReader As z_WsCsvTextStream
         Dim streamsCounter As Long
         
-        Set CSVparser = New zWsCsvInterface
-        Set StreamReader = New zWsStream
+        Set CSVparser = New z_WsCsvInterface
+        Set StreamReader = New z_WsCsvTextStream
     
         With CSVparser.parseConfig
             .delimitersGuessing = True
@@ -726,7 +726,7 @@ Private Function GetFileNameAndExtension(path As String) As String()
     GetFileNameAndExtension = tmpResult
 End Function
 Private Function GetLongFilters(ByRef tmpFilters() As Variant, _
-                                ByRef header As zWsArray) As Long()
+                                ByRef header As z_WsCsvArrayList) As Long()
     Dim tmpResult() As Long
     Dim tmpColl As Collection
     Dim trqidx As Long, arridx As Long
@@ -764,7 +764,7 @@ End Function
 Private Function GetFilePath(path As String)
     GetFilePath = Mid$(path, 1, InStrRev(path, "\"))
 End Function
-Public Function GetRecord() As zWsArray
+Public Function GetRecord() As z_WsCsvArrayList
     
     On Error GoTo GetRecord_Error_Handler
     If Not static_SeqReadStarted Then Exit Function
@@ -1369,8 +1369,8 @@ GetRecord_MissingEscapeChar:
                     Description:="Missing some quote char. Check the data and try again."
     Resume GetRecord_Error_Handler
 End Function
-Public Function ImportFromCSV(configObj As zWsCsvConf, _
-                            ParamArray FilterColumns() As Variant) As zWsCsvInterface
+Public Function ImportFromCSV(configObj As z_WsCsvParserConfig, _
+                            ParamArray FilterColumns() As Variant) As z_WsCsvInterface
     DoEvents 'Pass the control to the Operative System
     With configObj
         If FileExists(.path) Then
@@ -1379,7 +1379,7 @@ Public Function ImportFromCSV(configObj As zWsCsvConf, _
             End If
             If UBound(.dTypingTemplate) >= UBound(.dTypingLinks) Then
                 Dim tmpRequested() As Variant
-                Dim curConfig As zWsCsvConf
+                Dim curConfig As z_WsCsvParserConfig
                 Dim EmptyParam() As Variant
                 ReDim EmptyParam(-1 To -1) 'Emule empty ParamArray
         
@@ -1390,7 +1390,7 @@ Public Function ImportFromCSV(configObj As zWsCsvConf, _
                 If .Headers Then
                     '@--------------------------------------------------------------------------------
                     'Read the whole header
-                    Set P_CSV_HEADER = New zWsArray
+                    Set P_CSV_HEADER = New z_WsCsvArrayList
                     Set curConfig = .CopyConfig
                     curConfig.startingRecord = 1
                     curConfig.endingRecord = 1
@@ -1399,7 +1399,7 @@ Public Function ImportFromCSV(configObj As zWsCsvConf, _
                 If P_ERROR_NUMBER <> 0& Then GoTo ErrHandler_ImportFromCSV
                 '@--------------------------------------------------------------------------------
                 'Read the CSV data
-                Set P_CSV_DATA = New zWsArray
+                Set P_CSV_DATA = New z_WsCsvArrayList
                 StreamParseCSV configObj, P_CSV_DATA, tmpRequested
                 If P_ERROR_NUMBER = 0& Then
                     'Save pointers
@@ -1439,15 +1439,15 @@ ImportFromCSV_EmptyFile:
     Resume ErrHandler_ImportFromCSV
 End Function
 Public Function ImportFromCSVString(ByRef CSVstring As String, _
-                                    configObj As zWsCsvConf, _
-                                    ParamArray FilterColumns() As Variant) As zWsCsvInterface
+                                    configObj As z_WsCsvParserConfig, _
+                                    ParamArray FilterColumns() As Variant) As z_WsCsvInterface
     With configObj
         If UBound(.dTypingTemplate) >= UBound(.dTypingLinks) Then
             If LenB(CSVstring) = 0 Then
                 GoTo ImportFromCSV_EmptyString
             End If
             Dim tmpRequested() As Variant
-            Dim curConfig As zWsCsvConf
+            Dim curConfig As z_WsCsvParserConfig
             Dim EmptyParam() As Variant
             ReDim EmptyParam(-1 To -1) 'Emule empty ParamArray
             
@@ -1458,7 +1458,7 @@ Public Function ImportFromCSVString(ByRef CSVstring As String, _
             If .Headers Then
                 '@--------------------------------------------------------------------------------
                 'Read the header
-                Set P_CSV_HEADER = New zWsArray
+                Set P_CSV_HEADER = New z_WsCsvArrayList
                 Set curConfig = .CopyConfig
                 curConfig.startingRecord = 1
                 curConfig.endingRecord = 1
@@ -1467,7 +1467,7 @@ Public Function ImportFromCSVString(ByRef CSVstring As String, _
             If P_ERROR_NUMBER <> 0& Then GoTo ErrHandler_ImportFromString
             '@--------------------------------------------------------------------------------
             'Read the CSV data
-            Set P_CSV_DATA = New zWsArray
+            Set P_CSV_DATA = New z_WsCsvArrayList
             ParseCSVstring CSVstring, configObj, P_CSV_DATA, tmpRequested
             '@----------------------------------------------------------------------------
             If P_ERROR_NUMBER = 0& Then
@@ -1500,7 +1500,7 @@ ImportFromCSV_EmptyString:
                     Description:="The specified source String is empty. Please check and try again."
     Resume ErrHandler_ImportFromString
 End Function
-Public Function InsertField(aIndex As Long, Optional FieldName As String = vbNullString) As zWsCsvInterface
+Public Function InsertField(aIndex As Long, Optional FieldName As String = vbNullString) As z_WsCsvInterface
     On Error GoTo ErrHandler_InsertField
     If P_SUCCESSFUL_IMPORT And Not P_VARYING_LENGTHS Then
         Select Case aIndex
@@ -1565,7 +1565,7 @@ OutOfBounds_InsertField:
                     Description:="The specified index is out of bounds. Please check and try again."
     Resume ErrHandler_InsertField
 End Function
-Public Function InsertRecord(aIndex As Long) As zWsCsvInterface
+Public Function InsertRecord(aIndex As Long) As z_WsCsvInterface
     On Error GoTo ErrHandler_InsertRecord
     If P_SUCCESSFUL_IMPORT And Not P_VARYING_LENGTHS Then
         Select Case aIndex
@@ -1618,7 +1618,7 @@ Private Function IsWorkbookOpen(WBookName As String) As Boolean
     IsWorkbookOpen = BookMatching
 End Function
 Private Function JoinRecordsFields(ByRef RecordsArray As Variant, _
-                                    pconfig As zWsCsvConf, _
+                                    pconfig As z_WsCsvParserConfig, _
                                     Optional EnforcedQuotation As Boolean = False) As String
     Dim Buffer() As String
     Dim CoerceChr As String
@@ -1630,10 +1630,10 @@ Private Function JoinRecordsFields(ByRef RecordsArray As Variant, _
     Dim LB1 As Long, UB1 As Long
     Dim LB2 As Long, UB2 As Long
     Dim recDelimiter As String
-    Dim ArrayHelper As zWsArray
+    Dim ArrayHelper As z_WsCsvArrayList
     
     On Error GoTo JoinRecordsFields_Error
-    Set ArrayHelper = New zWsArray
+    Set ArrayHelper = New z_WsCsvArrayList
     '@----------------------------------------------------------------------------
     'Expand configuration object
     QuoteT = pconfig.dialect.quoteToken
@@ -1832,7 +1832,7 @@ Private Function MaxIndexVal(ByRef values As Variant) As Long
     Next idx0
     MaxIndexVal = idx
 End Function
-Public Function MergeFields(indexes As String, CharToMergeWith As String) As zWsCsvInterface
+Public Function MergeFields(indexes As String, CharToMergeWith As String) As z_WsCsvInterface
     Dim cpIndexes() As String
     
     cpIndexes() = FieldsToOperate(indexes)
@@ -1856,7 +1856,7 @@ Private Function CheckForDupIndexes(aIndexes As Variant) As Boolean
 err_handler:
     CheckForDupIndexes = False
 End Function
-Private Function MergeFlds(CharToMergeWith As String, cpIndexes() As String) As zWsCsvInterface
+Private Function MergeFlds(CharToMergeWith As String, cpIndexes() As String) As z_WsCsvInterface
     On Error GoTo ErrHandler_MergeFields
     If P_SUCCESSFUL_IMPORT And Not P_VARYING_LENGTHS Then
         Select Case FielsToMergeAreValid(cpIndexes)
@@ -1865,7 +1865,7 @@ Private Function MergeFlds(CharToMergeWith As String, cpIndexes() As String) As 
                 Dim cpRecord() As Variant
                 Dim fCounter As Long
                 Dim rCounter As Long
-                Dim tmpMergeRec As zWsArray
+                Dim tmpMergeRec As z_WsCsvArrayList
                 Dim LB As Long
                 Dim UB As Long
                 Dim storedIndexes As Long
@@ -1879,7 +1879,7 @@ Private Function MergeFlds(CharToMergeWith As String, cpIndexes() As String) As 
                 ReDim cpRecord(0 To P_VECTORS_REGULAR_BOUND - UB + LB)
                 '@--------------------------------------------------------------------------------
                 'Reserve storage
-                Set tmpMergeRec = New zWsArray
+                Set tmpMergeRec = New z_WsCsvArrayList
                 tmpMergeRec.Reinitialize UB - LB
                 With P_CSV_DATA
                     For rCounter = 0 To .count - 1
@@ -1976,7 +1976,7 @@ Private Function MinIndexVal(ByRef values As Variant) As Long
     Next idx0
     MinIndexVal = idx
 End Function
-Public Sub OpenSeqReader(configObj As zWsCsvConf, _
+Public Sub OpenSeqReader(configObj As z_WsCsvParserConfig, _
                             ParamArray FilterColumns() As Variant)
     On Error GoTo OpenSeqReader_Error_Handler
     With configObj
@@ -1985,7 +1985,7 @@ Public Sub OpenSeqReader(configObj As zWsCsvConf, _
                 GoTo OpenSeqReader_EmptyFile
             End If
             If UBound(.dTypingTemplate) >= UBound(.dTypingLinks) Then
-                Dim tmpConf As zWsCsvConf
+                Dim tmpConf As z_WsCsvParserConfig
                 Dim EmptyParam() As Variant
                 ReDim EmptyParam(-1 To -1) 'Emule empty ParamArray
                 
@@ -1996,7 +1996,7 @@ Public Sub OpenSeqReader(configObj As zWsCsvConf, _
                 If .Headers Then
                     '@--------------------------------------------------------------------------------
                     'Read the whole header
-                    Set P_CSV_HEADER = New zWsArray
+                    Set P_CSV_HEADER = New z_WsCsvArrayList
                     Set tmpConf = configObj.CopyConfig
                     tmpConf.startingRecord = 1
                     tmpConf.endingRecord = 1
@@ -2029,8 +2029,8 @@ Public Sub OpenSeqReader(configObj As zWsCsvConf, _
     static_RecordsCount = 0&
     static_fieldsBound = 0&
     static_fieldsMaxBound = 0&
-    Set static_tmpToken = New zWsArray
-    Set static_CSVstream = New zWsStream
+    Set static_tmpToken = New z_WsCsvArrayList
+    Set static_CSVstream = New z_WsCsvTextStream
     With configObj
         static_CSVstream.bufferSize = .bufferSize
         static_CSVstream.endStreamOnLineBreak = True
@@ -2088,8 +2088,8 @@ Public Sub OpenSeqReader(configObj As zWsCsvConf, _
     '@----------------------------------------------------------------------------
     static_EscapeAscW = AscW(static_QuoteChar)
     static_FDAscW = AscW(static_FieldDelimiter)
-    Set static_RecordToken = New zWsArray
-    Set static_outputList = New zWsArray
+    Set static_RecordToken = New z_WsCsvArrayList
+    Set static_outputList = New z_WsCsvArrayList
     static_Index = 0
     '@----------------------------------------------------------------------------
     'Get CSV stream and populate a temp array
@@ -2145,8 +2145,8 @@ OpenSeqReader_EmptyFile:
     Resume OpenSeqReader_Error_Handler
 End Sub
 Private Sub ParseCSVstring(ByRef CSVtext As String, _
-                            configObj As zWsCsvConf, _
-                            outputList As zWsArray, _
+                            configObj As z_WsCsvParserConfig, _
+                            outputList As z_WsCsvArrayList, _
                             ByRef FilterColumns() As Variant)
     Dim brCounter As Long
     Dim commToken As Long
@@ -2171,12 +2171,12 @@ Private Sub ParseCSVstring(ByRef CSVtext As String, _
     Dim NotEvenEscapeChrNumber As Boolean
     Dim RecordEndReached As Boolean
     Dim RecordsCount As Long
-    Dim RecordToken As zWsArray
+    Dim RecordToken As z_WsCsvArrayList
     Dim SearchBeginningMark As Long
     Dim SplittedToken As Boolean
     Dim StartRecord As Long
     Dim tmpRequested() As Variant
-    Dim tmpToken As zWsArray
+    Dim tmpToken As z_WsCsvArrayList
     Dim TokenBeginningPos As Long
     Dim TokenEndingPos As Long
     Dim TokenEndReached As Boolean
@@ -2190,7 +2190,7 @@ Private Sub ParseCSVstring(ByRef CSVtext As String, _
     RecordsCount = 0&
     P_VECTORS_REGULAR_BOUND = 0&
     P_VECTORS_MAX_BOUND = 0&
-    Set tmpToken = New zWsArray
+    Set tmpToken = New z_WsCsvArrayList
     TokenEndReached = False
     RecordEndReached = False
     With configObj
@@ -2263,7 +2263,7 @@ Private Sub ParseCSVstring(ByRef CSVtext As String, _
     '@----------------------------------------------------------------------------
     EscapeAscW = AscW(QuoteChar)
     FDAscW = AscW(FieldDelimiter)
-    Set RecordToken = New zWsArray
+    Set RecordToken = New z_WsCsvArrayList
     Index = 0
     '@----------------------------------------------------------------------------
     'Populate a temp array
@@ -2709,7 +2709,7 @@ ParseCSVstring_NoSignificantData:
                                     "the String has only empty or commented lines that can be omitted."
     Resume ParseCSVstring_Error_Handler
 End Sub
-Public Function RearrangeFields(FieldsOrder As String) As zWsCsvInterface
+Public Function RearrangeFields(FieldsOrder As String) As z_WsCsvInterface
     On Error GoTo ErrHandler_RearrangeFields
     If P_SUCCESSFUL_IMPORT And Not P_VARYING_LENGTHS Then
         Dim tmpFldOrder() As String
@@ -2764,7 +2764,7 @@ Private Function FieldsToOperate(fieldsString As String) As String()
     Dim tmpFields() As String
     
     If fieldsString Like "*-*" Then
-        Dim tmpResult As zWsArray
+        Dim tmpResult As z_WsCsvArrayList
         Dim tmpPreResult() As String
         Dim rfICounter As Long
         Dim rfJCounter As Long
@@ -2773,7 +2773,7 @@ Private Function FieldsToOperate(fieldsString As String) As String()
         Dim ROFub As Long
         Dim stepIdx As Long
         
-        Set tmpResult = New zWsArray
+        Set tmpResult = New z_WsCsvArrayList
         tmpPreResult() = Split(fieldsString, ",")
         For rfICounter = LBound(tmpPreResult) To UBound(tmpPreResult)
             If InStrB(1, tmpPreResult(rfICounter), "-") Then
@@ -2819,7 +2819,7 @@ Private Function RearrangeCheckFieldsToOperate(fieldsToRearrange() As String) As
     Next fldOcount
     RearrangeCheckFieldsToOperate = (P_VECTORS_REGULAR_BOUND = definedIdx - 1)
 End Function
-Public Function RemoveField(aIndex As Long) As zWsCsvInterface
+Public Function RemoveField(aIndex As Long) As z_WsCsvInterface
     On Error GoTo ErrHandler_RemoveField
     If P_SUCCESSFUL_IMPORT And Not P_VARYING_LENGTHS Then
         Select Case aIndex
@@ -2869,7 +2869,7 @@ OutOfBounds_RemoveField:
                     Description:="The specified index is out of bounds. Please check and try again."
     Resume ErrHandler_RemoveField
 End Function
-Public Function RemoveRecords(aIndex As Long, Optional count As Long = 1) As zWsCsvInterface
+Public Function RemoveRecords(aIndex As Long, Optional count As Long = 1) As z_WsCsvInterface
     On Error GoTo ErrHandler_RemoveRecords
     If P_SUCCESSFUL_IMPORT And Not P_VARYING_LENGTHS Then
         Select Case aIndex
@@ -2939,7 +2939,7 @@ Private Function RequestedField2(ByVal fieldIndex As Long, _
     End Select
 End Function
 Public Sub ResetToDefault()
-    Set config = New zWsCsvConf
+    Set config = New z_WsCsvParserConfig
     P_ERROR_DESC = vbNullString
     P_ERROR_NUMBER = 0&
     P_ERROR_SOURCE = vbNullString
@@ -3004,7 +3004,7 @@ Private Sub SkipUnwantedLines(ByRef idx As Long, _
         Loop While UnwantedLine And idx <= MaxIdx
     End If
 End Sub
-Public Function ShiftField(aIndex As Long, Shift As Long) As zWsCsvInterface
+Public Function ShiftField(aIndex As Long, Shift As Long) As z_WsCsvInterface
 On Error GoTo ErrHandler_ShiftField
     If P_SUCCESSFUL_IMPORT And Not P_VARYING_LENGTHS Then
         Select Case aIndex + Shift
@@ -3061,7 +3061,7 @@ OutOfBounds_ShiftField:
                     Description:="The specified index is out of bounds. Please check and try again."
     Resume ErrHandler_ShiftField
 End Function
-Public Function ShiftRecord(aIndex As Long, Shift As Long) As zWsCsvInterface
+Public Function ShiftRecord(aIndex As Long, Shift As Long) As z_WsCsvInterface
 On Error GoTo ErrHandler_ShiftRecord
     If P_SUCCESSFUL_IMPORT And Not P_VARYING_LENGTHS Then
         Select Case aIndex + Shift
@@ -3113,14 +3113,14 @@ OutOfBounds_ShiftRecord:
                     Description:="The specified index is out of bounds. Please check and try again."
     Resume ErrHandler_ShiftRecord
 End Function
-Public Function SniffDelimiters(ByRef confObject As zWsCsvConf, _
-                            Optional ByRef CSVstring As String = vbNullString) As zWsCsvDialect
+Public Function SniffDelimiters(ByRef confObject As z_WsCsvParserConfig, _
+                            Optional ByRef CSVstring As String = vbNullString) As z_WsCsvDialect
                             
     If Not (confObject.path = vbNullString And CSVstring = vbNullString) Then
         If CSVstring = vbNullString Then
-            Dim StreamObj As zWsStream
+            Dim StreamObj As z_WsCsvTextStream
             
-            Set StreamObj = New zWsStream
+            Set StreamObj = New z_WsCsvTextStream
             With StreamObj
                 .endStreamOnLineBreak = True
                 .utf8EncodedFile = confObject.utf8EncodedFile
@@ -3135,21 +3135,21 @@ Public Function SniffDelimiters(ByRef confObject As zWsCsvConf, _
         ResetAlerts
     End If
 End Function
-Private Function SniffInString(ByRef confObject As zWsCsvConf, _
+Private Function SniffInString(ByRef confObject As z_WsCsvParserConfig, _
                             ByRef CSVstring As String, _
-                            Optional Buffered As Boolean = False) As zWsCsvDialect
+                            Optional Buffered As Boolean = False) As z_WsCsvDialect
 
     Dim CtableScore() As Double
     Dim DelIdx As Long
     Dim EmptyParam() As Variant
-    Dim GuesserHelper As zWsCsvSniffer
-    Dim GuessResults As zWsArray
+    Dim GuesserHelper As z_WsCsvSniffer
+    Dim GuessResults As z_WsCsvArrayList
     Dim L0_FieldDelimiter As Long
     Dim L1_FieldDelimiter As Long
     Dim LinesEnds() As String
     Dim Quote As String
     Dim QuoteChar() As QuoteTokens
-    Dim tmpConfig As zWsCsvConf
+    Dim tmpConfig As z_WsCsvParserConfig
     Dim TmpCSVstr As String
     Dim TmpDelimiters() As String
     Dim UBlinesEnds() As Long
@@ -3174,7 +3174,7 @@ Private Function SniffInString(ByRef confObject As zWsCsvConf, _
     'Parser config
     ReDim EmptyParam(-1 To -1) 'To emule empty ParamArray parameter
     TmpDelimiters() = tmpConfig.delimitersToGuess
-    Set SniffInString = New zWsCsvDialect
+    Set SniffInString = New z_WsCsvDialect
     '@--------------------------------------------------------------------------------
     'Scores array
     ReDim CtableScore(LBound(TmpDelimiters) To UBound(TmpDelimiters))
@@ -3215,11 +3215,11 @@ Private Function SniffInString(ByRef confObject As zWsCsvConf, _
         .endingRecord = 10
         .skipCommentLines = True
         .skipEmptyLines = True
-        Set GuesserHelper = New zWsCsvSniffer
+        Set GuesserHelper = New z_WsCsvSniffer
         For DelIdx = LBound(TmpDelimiters) To UBound(TmpDelimiters)
             If InStrB(1, CSVstring, TmpDelimiters(DelIdx)) Then
                 .dialect.fieldsDelimiter = TmpDelimiters(DelIdx)
-                Set GuessResults = New zWsArray
+                Set GuessResults = New z_WsCsvArrayList
                 ParseCSVstring CSVstring, tmpConfig, GuessResults, EmptyParam
                 CtableScore(DelIdx) = GuesserHelper.TableScore(GuessResults)
             End If
@@ -3247,7 +3247,7 @@ End Function
 Public Function Sort(Optional ByVal FromIndex As Long = -1, _
                         Optional ByVal ToIndex As Long = -1, _
                         Optional ByVal SortingKeys As Variant = 1, _
-                        Optional ByVal SortAlgorithm As SortingAlgorithms = SortingAlgorithms.SA_IntroSort) As zWsCsvInterface
+                        Optional ByVal SortAlgorithm As SortingAlgorithms = SortingAlgorithms.SA_IntroSort) As z_WsCsvInterface
     
     On Error GoTo Sort_Error_Handler:
     
@@ -3274,7 +3274,7 @@ End Function
 Public Function SortByField(Optional ByVal FromIndex As Long = -1, _
                             Optional ByVal ToIndex As Long = -1, _
                             Optional ByVal SortingKey As Long = 1, _
-                            Optional ByVal SortAlgorithm As SortingAlgorithms = SortingAlgorithms.SA_IntroSort) As zWsCsvInterface
+                            Optional ByVal SortAlgorithm As SortingAlgorithms = SortingAlgorithms.SA_IntroSort) As z_WsCsvInterface
     
     On Error GoTo SortByField_Error_Handler:
     
@@ -3282,11 +3282,11 @@ Public Function SortByField(Optional ByVal FromIndex As Long = -1, _
         If FromIndex = -1 Then
             FromIndex = 1
         End If
-        Dim CurField As zWsArray
+        Dim CurField As z_WsCsvArrayList
         Dim CurFieldArray() As Variant
         Dim sfIcounter As Long
         
-        Set CurField = New zWsArray
+        Set CurField = New z_WsCsvArrayList
         CurFieldArray() = P_CSV_DATA(Abs(SortingKey) - 1)
         If ToIndex = -1 Then
             ToIndex = UBound(CurFieldArray) + 1
@@ -3305,16 +3305,16 @@ SortByField_Error_Handler:
     P_ERROR_DESC = "[SortByField] " & err.Description
     P_ERROR_SOURCE = err.Source
 End Function
-Private Function SortRearrangeGetStr(FieldArray() As Variant, SortedFieldList As zWsArray) As String
+Private Function SortRearrangeGetStr(FieldArray() As Variant, SortedFieldList As z_WsCsvArrayList) As String
     Dim srgIcounter As Long
     Dim srgJcounter As Long
     Dim srgTmpBool As Boolean
     Dim tmpData() As Variant
     Dim fldPos As Long
-    Dim tmpResult As zWsArray
+    Dim tmpResult As z_WsCsvArrayList
     
     tmpData() = SortedFieldList.items
-    Set tmpResult = New zWsArray
+    Set tmpResult = New z_WsCsvArrayList
     For srgIcounter = LBound(FieldArray) To UBound(FieldArray)
         srgJcounter = LBound(tmpData)
         fldPos = 0
@@ -3329,7 +3329,7 @@ Private Function SortRearrangeGetStr(FieldArray() As Variant, SortedFieldList As
     Next srgIcounter
     SortRearrangeGetStr = Join$(tmpResult.items, ",")
 End Function
-Public Function SplitField(aIndex As Long, CharToSplitWith As String) As zWsCsvInterface
+Public Function SplitField(aIndex As Long, CharToSplitWith As String) As z_WsCsvInterface
     On Error GoTo ErrHandler_SplitField
     If P_SUCCESSFUL_IMPORT And Not P_VARYING_LENGTHS Then
         Select Case aIndex
@@ -3387,8 +3387,8 @@ OutOfBounds_SplitField:
                     Description:="The specified index is out of bounds. Please check and try again."
     Resume ErrHandler_SplitField
 End Function
-Private Sub StreamParseCSV(configObj As zWsCsvConf, _
-                            outputList As zWsArray, _
+Private Sub StreamParseCSV(configObj As z_WsCsvParserConfig, _
+                            outputList As z_WsCsvArrayList, _
                             ByRef FilterColumns() As Variant)
     Dim commToken As Long
     Dim dynamicType As Boolean
@@ -3413,12 +3413,12 @@ Private Sub StreamParseCSV(configObj As zWsCsvConf, _
     Dim NotEvenEscapeChrNumber As Boolean
     Dim RecordEndReached As Boolean
     Dim RecordsCount As Long
-    Dim RecordToken As zWsArray
+    Dim RecordToken As z_WsCsvArrayList
     Dim SearchBeginningMark As Long
     Dim SplittedToken As Boolean
     Dim StartRecord As Long
     Dim tmpRequested() As Variant
-    Dim tmpToken As zWsArray
+    Dim tmpToken As z_WsCsvArrayList
     Dim TokenBeginningPos As Long
     Dim TokenEndingPos As Long
     Dim TokenEndReached As Boolean
@@ -3431,8 +3431,8 @@ Private Sub StreamParseCSV(configObj As zWsCsvConf, _
     RecordsCount = 0&
     P_VECTORS_REGULAR_BOUND = 0&
     P_VECTORS_MAX_BOUND = 0&
-    Set tmpToken = New zWsArray
-    Set CSVstream = New zWsStream
+    Set tmpToken = New z_WsCsvArrayList
+    Set CSVstream = New z_WsCsvTextStream
     With configObj
         CSVstream.bufferSize = .bufferSize
         CSVstream.endStreamOnLineBreak = True
@@ -3510,7 +3510,7 @@ Private Sub StreamParseCSV(configObj As zWsCsvConf, _
     '@----------------------------------------------------------------------------
     EscapeAscW = AscW(QuoteChar)
     FDAscW = AscW(FieldDelimiter)
-    Set RecordToken = New zWsArray
+    Set RecordToken = New z_WsCsvArrayList
     Index = 0
     '@----------------------------------------------------------------------------
     'Get CSV stream and populate a temp array
@@ -4027,7 +4027,7 @@ StreamParseCSV_NoSignificantData:
     Resume StreamParseCSV_Error_Handler
 End Sub
 Private Sub StreamSkipUnwantedLines(ByRef idx As Long, _
-                                    ByRef Ostream As zWsStream, _
+                                    ByRef Ostream As z_WsCsvTextStream, _
                                     ByRef Arr() As String, _
                                     ByRef MaxIdx As Long, _
                                     ByRef recDelimiter As String, _

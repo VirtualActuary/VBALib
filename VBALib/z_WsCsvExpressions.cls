@@ -2,7 +2,7 @@ VERSION 1.0 CLASS
 BEGIN
   MultiUse = -1  'True
 END
-Attribute VB_Name = "zWsExpressions"
+Attribute VB_Name = "z_WsCsvExpressions"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
@@ -799,7 +799,7 @@ Private Sub BuildErrMessage(ErrorType As ExpressionErrors, Optional AditionalCon
 End Sub
 
 Private Function callback(ByRef sClassName As String) As Object
-    Set callback = CallByName(New zWsCallBack, sClassName, VbGet)
+    Set callback = CallByName(New z_WsCsvCallBack, sClassName, VbGet)
 End Function
 
 Private Sub CastCase(ByRef Expression As String, ByRef outStr As String)
@@ -941,7 +941,7 @@ Private Function CountParentheses(ByRef Expression As String, ByRef ParenthesisC
     CountParentheses = tmpResult
 End Function
 
-Public Function Create(ByRef aExpression As Variant) As zWsExpressions
+Public Function Create(ByRef aExpression As Variant) As z_WsCsvExpressions
     If aExpression <> vbNullString Then
         ExprToEval = RemoveDupNegation(ApplyLawOfSigns(ReconstructLiteralStrings(CStr(aExpression), Join$(Split(aExpression, " "), vbNullString))))
         If ExprToEval <> RemoveDupNegation(ApplyLawOfSigns(ReconstructLiteralStrings(CStr(P_EXPRESSION), Join$(Split(P_EXPRESSION, " "), vbNullString)))) Then

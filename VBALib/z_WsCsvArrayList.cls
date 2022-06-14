@@ -2,7 +2,7 @@ VERSION 1.0 CLASS
 BEGIN
   MultiUse = -1  'True
 END
-Attribute VB_Name = "zWsArray"
+Attribute VB_Name = "z_WsCsvArrayList"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
@@ -337,14 +337,14 @@ End Function
 ''' </summary>
 ''' <param name="Pattern">The expression to eval.</param>
 ''' <param name="StartIndex">The index to start filter records (base 1).</param>
-Public Function Filter(Pattern As String, startIndex As Long) As zWsArray
-    Dim Evaluator As zWsExpressions
+Public Function Filter(Pattern As String, startIndex As Long) As z_WsCsvArrayList
+    Dim Evaluator As z_WsCsvExpressions
     Dim rCounter As Long
     Dim FilterFields() As Long
     
     If startIndex < 1 Then Exit Function
-    Set Filter = New zWsArray
-    Set Evaluator = New zWsExpressions
+    Set Filter = New z_WsCsvArrayList
+    Set Evaluator = New z_WsCsvExpressions
     With Evaluator
         .GallopingMode = False
         .Create Pattern
@@ -492,7 +492,7 @@ End Function
 ''' Concatenates the values from the current instance with the specified values.
 ''' </summary>
 ''' <param name="AValues">A variant containing the array, arraylist or value to concatenate.</param>
-Public Function Concat(ByRef aValues As Variant) As zWsArray
+Public Function Concat(ByRef aValues As Variant) As z_WsCsvArrayList
 Attribute Concat.VB_Description = "Concatenates the values from the current instance with the specified values."
     On Error GoTo Concat_ErrHandler
     Dim tmpValues As Variant
@@ -536,7 +536,7 @@ End Function
 ''' CSV generated storage expected
 ''' </summary>
 ''' <param name="AValues">Containing an arraylist or value to concatenate.</param>
-Public Function Concat2(ByRef aValues As zWsArray) As zWsArray
+Public Function Concat2(ByRef aValues As z_WsCsvArrayList) As z_WsCsvArrayList
     On Error GoTo Concat_ErrHandler
     Dim tmpValues As Variant
     Dim jc2 As Long
@@ -555,11 +555,11 @@ End Function
 ''' <param name="StartIndex">The index in which the operation will start.</param>
 ''' <param name="EndIndex">The index in which the operation will end.</param>
 Public Function Copy(Optional startIndex As Long = 0, _
-                        Optional EndIndex As Long = -1) As zWsArray
+                        Optional EndIndex As Long = -1) As z_WsCsvArrayList
 Attribute Copy.VB_Description = "Returns a copy of the current instance."
     Dim c As Long
     
-    Set Copy = New zWsArray
+    Set Copy = New z_WsCsvArrayList
     If EndIndex = -1 Then
         EndIndex = CurrentIndex
     End If
