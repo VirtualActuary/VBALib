@@ -292,7 +292,7 @@ Public Function GetUniqueItems(arr() As Variant) As Variant()
         Dim arrSorted() As Variant
         arrSorted = SortArray(arr)
         
-        Dim uniqueItemsList As New zVLibList
+        Dim uniqueItemsList As New z_VLibList
         uniqueItemsList.Add arrSorted(LBound(arrSorted))
         
         Dim i As Long
@@ -641,11 +641,11 @@ Public Function GetAllExcelLinks(Optional wb As Workbook) As Variant
     linkNames = NormalizeArray(ActiveWorkbook.LinkSources(xlExcelLinks))
     
     If ArrayLen(linkNames) Then
-        Dim linksArr() As zVLibLink
+        Dim linksArr() As z_VLibLink
         ReDim linksArr(1 To ArrayLen(linkNames))
         Dim i As Integer
         For i = 1 To UBound(linkNames)
-            Set linksArr(i) = New zVLibLink
+            Set linksArr(i) = New z_VLibLink
             linksArr(i).Initialize wb, CStr(linkNames(i))
         Next
         GetAllExcelLinks = linksArr
@@ -695,7 +695,7 @@ End Function
 ' @param wb: The workbook that contains the link (defaults to the active
 ' workbook).
 Public Function GetExcelLink(linkFilename As String, Optional wb As Workbook) _
-    As zVLibLink
+    As z_VLibLink
     
     If wb Is Nothing Then Set wb = ActiveWorkbook
     
@@ -707,7 +707,7 @@ Public Function GetExcelLink(linkFilename As String, Optional wb As Workbook) _
             "No Excel link exists with the given name ('" & linkFilename _
                 & "')."
     Else
-        Set GetExcelLink = New zVLibLink
+        Set GetExcelLink = New z_VLibLink
         GetExcelLink.Initialize wb, matchingLinkName
     End If
 End Function
@@ -767,7 +767,7 @@ End Sub
 ' @param wb: The workbook that contains the table (defaults to the active
 ' workbook).
 Public Function GetExcelTable(tblName As String, Optional wb As Workbook) _
-    As zVLibTable
+    As z_VLibTable
     
     If wb Is Nothing Then Set wb = ActiveWorkbook
     
@@ -786,7 +786,7 @@ Public Function GetExcelTable(tblName As String, Optional wb As Workbook) _
     
     wbPrevActive.Activate
     
-    Set GetExcelTable = New zVLibTable
+    Set GetExcelTable = New z_VLibTable
     GetExcelTable.Initialize tbl
     Exit Function
     
@@ -1002,7 +1002,7 @@ Private Sub CopyExcelSheets(wb As Workbook, sheetsSpec() As Variant, _
     Dim sheetIndex As Long, sheetMoveOrderIndex As Long
     
     ' The list of Excel links to other workbooks that could not be broken.
-    Dim linksFailedToBreak As New zVLibList
+    Dim linksFailedToBreak As New z_VLibList
     
     Dim i As Long
     For i = i1 To i2
@@ -1078,10 +1078,10 @@ Private Sub CopyExcelSheets(wb As Workbook, sheetsSpec() As Variant, _
     
     Dim currentFilename As String
     Dim currentWb As Workbook
-    Dim filesProcessed As New zVLibList
-    Dim sheetsToCopy As New zVLibList
-    Dim oldLinkNames As New zVLibList
-    Dim newLinkNames As New zVLibList
+    Dim filesProcessed As New z_VLibList
+    Dim sheetsToCopy As New z_VLibList
+    Dim oldLinkNames As New z_VLibList
+    Dim newLinkNames As New z_VLibList
     
     Do
         currentFilename = ""
@@ -1177,7 +1177,7 @@ Private Sub CopyExcelSheets(wb As Workbook, sheetsSpec() As Variant, _
                     
                     ShowStatusMessage "Breaking link to workbook: " _
                         & GetFilename(linkName)
-                    Dim currentWbLink As zVLibLink
+                    Dim currentWbLink As z_VLibLink
                     Set currentWbLink = GetExcelLink(linkName, wb)
                     If Not currentWbLink.Break(False) Then
                         linksFailedToBreak.Add GetFilename(linkName)
@@ -1323,7 +1323,7 @@ End Function
 Private Function ListFiles_Internal(filePattern As String, attrs As Long) _
     As Variant()
     
-    Dim filesList As New zVLibList
+    Dim filesList As New z_VLibList
     Dim folderName As String
     
     If FolderExists(filePattern) Then

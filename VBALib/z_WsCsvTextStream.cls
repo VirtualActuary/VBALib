@@ -2,7 +2,7 @@ VERSION 1.0 CLASS
 BEGIN
   MultiUse = -1  'True
 END
-Attribute VB_Name = "zWsStream"
+Attribute VB_Name = "z_WsCsvTextStream"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
@@ -338,10 +338,10 @@ Private Sub StartVariables()
     P_ATENDOFSTREAM = False
 End Sub
 Public Function UTF8Decode(ByVal sStr As String) As String
-    Dim l As Long, sUTF8 As zWsArray, iChar As Long, iChar2 As Long
+    Dim l As Long, sUTF8 As z_WsCsvArrayList, iChar As Long, iChar2 As Long
     
     On Error GoTo UTF8_Decode_error
-    Set sUTF8 = New zWsArray
+    Set sUTF8 = New z_WsCsvArrayList
     For l = 1 To LenB(sStr) Step 2
         iChar = Asc(MidB$(sStr, l, 2))
         If iChar > 127 Then

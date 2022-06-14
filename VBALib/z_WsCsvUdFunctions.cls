@@ -2,7 +2,7 @@ VERSION 1.0 CLASS
 BEGIN
   MultiUse = -1  'True
 END
-Attribute VB_Name = "zWsUdFunctions"
+Attribute VB_Name = "z_WsCsvUdFunctions"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
@@ -63,7 +63,7 @@ End Function
 'Adapted from: https://rosettacode.org/wiki/Determinant_and_permanent#VBA
 Public Function DET(StrArray As Variant) As Double 'Expected an one element string array
     Dim a() As Double
-    Dim ArrayHelper As New zWsExpressions
+    Dim ArrayHelper As New z_WsCsvExpressions
     
     a() = StringTodblArray(ArrayHelper.ArrayFromString(CStr(StrArray(LBound(StrArray)))))
     DET = DET_(a)

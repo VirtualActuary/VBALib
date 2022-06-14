@@ -157,10 +157,10 @@ for i in all_bas_lines:
 vlib_namespace_fix = [(i, "VLib."+i) for i in vlib_funcnames]
 vlib_renames = [       
     (lambda x: x.lower().startswith("vbalib_excel"),
-     lambda x: "zVLib"+x[len("vbalib_excel"):]),
+     lambda x: "z_VLib"+x[len("vbalib_excel"):]),
 
     (lambda x: x.lower().startswith("vbalib_"),
-     lambda x: "zVLib"+x[len("vbalib_"):]),
+     lambda x: "z_VLib"+x[len("vbalib_"):]),
 ]
 
 common_lib_output_dir2 = Path(str(common_lib.output_dir)+"2")
@@ -191,15 +191,15 @@ Config(
         git_rev="1b23247",  # 2022-03
         glob_include=['**/src/*.cls'],
         rename_overwrites={
-            "CSVArrayList": "zWsArray",
-            "CSVcallBack": "zWsCallBack",
-            "CSVdialect": "zWsCsvDialect",
-            "CSVexpressions": "zWsExpressions",
-            "CSVparserConfig": "zWsCsvConf",
-            "CSVSniffer": "zWsCsvSniffer",
-            "CSVTextStream": "zWsStream",
-            "CSVudFunctions": "zWsUdFunctions",
-            "CSVinterface": "zWsCsvInterface",  # useful
+            "CSVArrayList": "z_WsCsvArrayList",
+            "CSVcallBack": "z_WsCsvCallBack",
+            "CSVdialect": "z_WsCsvDialect",
+            "CSVexpressions": "z_WsCsvExpressions",
+            "CSVparserConfig": "z_WsCsvParserConfig",
+            "CSVSniffer": "z_WsCsvSniffer",
+            "CSVTextStream": "z_WsCsvTextStream",
+            "CSVudFunctions": "z_WsCsvUdFunctions",
+            "CSVinterface": "z_WsCsvInterface",  # useful
         }
     ),
     Source(
@@ -270,8 +270,8 @@ Config(
     #),
     Source(
         git_source = "https://github.com/VirtualActuary/MiscVBAFunctions.git",
-        git_rev = "8e5e8f3",
-        glob_include=['MiscVBAFunctions/**/*.bas', 'MiscVBAFunctions/**/*.cls'],
+        git_rev="8e5e8f3",
+        glob_include=['MiscVBAFunctions/**/*.bas', 'MiscVBAFunctions/**/*.cls', "**/thisworkbook.txt"],
         glob_exclude=["**/Test__*"],
         combine_bas_files="Fn",
         auto_bas_namespace=True,

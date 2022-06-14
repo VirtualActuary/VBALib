@@ -2,7 +2,7 @@ VERSION 1.0 CLASS
 BEGIN
   MultiUse = -1  'True
 END
-Attribute VB_Name = "zWsCsvSniffer"
+Attribute VB_Name = "z_WsCsvSniffer"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
@@ -465,7 +465,7 @@ End Function
 Private Function IsWindowsAbsolutePath(value As Variant) As Boolean
     IsWindowsAbsolutePath = LikeCompare(value, "[A-Za-z]:\*")
 End Function
-Private Function RecordsAvgFields(ArrayList As zWsArray) As Double
+Private Function RecordsAvgFields(ArrayList As z_WsCsvArrayList) As Double
     Dim CumulativeFields As Double
     Dim L0 As Long
     
@@ -507,7 +507,7 @@ End Function
 ''' array list.
 ''' </summary>
 ''' <param name="ArrayList">CSV array list.</param>
-Private Function RecordsConsistencyFactor(ArrayList As zWsArray) As Double
+Private Function RecordsConsistencyFactor(ArrayList As z_WsCsvArrayList) As Double
     Dim AvgFields As Double
     Dim CumulativeDiff As Double
     Dim L0 As Long
@@ -531,7 +531,7 @@ End Function
 ''' in each record. The score is in the range 0 < x <= 100.
 ''' </summary>
 ''' <param name="ArrayList">CSV imported data.</param>
-Public Function TableScore(ByRef ArrayList As zWsArray) As Double
+Public Function TableScore(ByRef ArrayList As z_WsCsvArrayList) As Double
     If Not ArrayList Is Nothing Then
         If ArrayList.count > 0 Then
             Dim L0 As Long
