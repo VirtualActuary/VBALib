@@ -22,8 +22,6 @@ Function Example_ExportToCSV()
     arr(1, 0) = "c"
     arr(1, 1) = "d"
     
-    ' ExportToCSV appends to an existing CSV file, so we need to delete the file first
-    If VLib.FileExists(abspath) Then fso.DeleteFile abspath
     ' Ensure the directory exists
     VLib.MkDirRecursive VLib.GetDirectoryName(abspath)
     
