@@ -303,17 +303,27 @@ Config(
         auto_bas_namespace=True,
         auto_cls_rename=False,
     ),
-    Source(path_source=this_dir().joinpath("add_examples"), auto_bas_namespace=False),
+    #Source(path_source=this_dir().joinpath("add_examples"), auto_bas_namespace=False),
 ).run(output)
 
-# Make library into a .xlsb file
+# Add empty xlsx file
 shutil.copy2(
     empty_src := this_dir().joinpath("add_empty_workbook", "empty.xlsx"),
     empty_dest := output.joinpath("empty.xlsx"),
 )
+
+# Add examples
+shutil.copytree(
+    this_dir().joinpath("add_examples"),
+    examples_dest := output.joinpath("examples")
+)
+
+# Make library into an .xlsb file
 compile_xl(output, xl_final := this_dir().joinpath("VBALib.xlsb"))
 runmacro_xl(xl_final)
+
 os.remove(empty_dest)
+shutil.rmtree(examples_dest)
 
 with suppress(OSError):
     os.remove(zip_dest := this_dir().joinpath("VBALib.zip"))
