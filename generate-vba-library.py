@@ -76,8 +76,6 @@ def office64_ptr_compatability(bin_lines):
 
     i = -1
     while (i := i + 1) < len(bin_lines):
-        if b'declare' in bin_lines[i].lower():
-            print(bin_lines[i])
         if bin_lines[i].strip().lower().split()[1:2] == [b"declare"]:
             txt64 = (
                 bin_lines[i]
