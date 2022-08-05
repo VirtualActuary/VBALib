@@ -8,6 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 
+Option Explicit
 #If VBA7 Then
     Private Declare PtrSafe Sub CopyMemory Lib "kernel32" Alias "RtlMoveMemory"  (dest As Any, source As Any, ByVal bytes As LongPtr)
 #Else
@@ -28,7 +29,6 @@ Attribute VB_Exposed = True
 #Else
     Private Declare Function GetTempPathA Lib "kernel32"  (ByVal nBufferLength As Long, ByVal lpBuffer As String) As Long
 #End If
-Option Explicit
 ' Common VBA Library - ArrayUtils
 ' Provides functions for handling arrays that are lacking in the built-in VBA
 ' language.

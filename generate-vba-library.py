@@ -1,13 +1,13 @@
 from copy import copy
 from tempfile import gettempdir, TemporaryDirectory
-
+from typing import Union
 from zebra_vba_packager import (
     Config,
     Source,
     compile_xl,
     runmacro_xl,
-    pack,
     backup_last_50_paths,
+    pack
 )
 from locate import this_dir
 from textwrap import dedent
@@ -28,10 +28,18 @@ with TemporaryDirectory() as tempdir:
 output = this_dir().joinpath("VBALib")
 
 
+def to_ln(s: Union[str, bytes]):
+    #if s are bytes
+    if isinstance(s, bytes):
+        return s.replace(b"\r\n", b"\n")
+    else:
+        return s.replace("\r\n", "\n")
+
+
 def mid_process(source):
     for pth in source.temp_transformed.rglob("*.bas"):
         with pth.open("rb") as f:
-            txt_lines = f.read().split(b"\r\n")
+            txt_lines = to_ln(f.read()).split(b"\n")
 
         do_overwrite = False
         for i, line in enumerate(txt_lines):
@@ -132,7 +140,7 @@ for fpath in common_lib.output_dir.glob("*.bas"):
         continue
 
     with fpath.open("rb") as f:
-        txt_lines = f.read().split(b"\r\n")
+        txt_lines = to_ln(f.read()).split(b"\n")
 
     txt_lines = office64_ptr_compatability(txt_lines)
     i = functions_start(txt_lines)
@@ -174,8 +182,8 @@ with common_lib.output_dir.joinpath("concatenated.bas").open("wb") as f:
     f.write(
         b"\r\n".join(
             [b'Attribute VB_Name = "VLib"']
-            + all_pointer_declare
             + [b"Option Explicit"]
+            + all_pointer_declare
             + all_precode_declare
             + all_bas_lines
         )
@@ -303,17 +311,27 @@ Config(
         auto_bas_namespace=True,
         auto_cls_rename=False,
     ),
-    Source(path_source=this_dir().joinpath("add_examples"), auto_bas_namespace=False),
+    #Source(path_source=this_dir().joinpath("add_examples"), auto_bas_namespace=False),
 ).run(output)
 
-# Make library into a .xlsb file
+# Add empty xlsx file
 shutil.copy2(
     empty_src := this_dir().joinpath("add_empty_workbook", "empty.xlsx"),
     empty_dest := output.joinpath("empty.xlsx"),
 )
+
+# Add examples
+shutil.copytree(
+    this_dir().joinpath("add_examples"),
+    examples_dest := output.joinpath("examples")
+)
+
+# Make library into an .xlsb file
 compile_xl(output, xl_final := this_dir().joinpath("VBALib.xlsb"))
 runmacro_xl(xl_final)
+
 os.remove(empty_dest)
+shutil.rmtree(examples_dest)
 
 with suppress(OSError):
     os.remove(zip_dest := this_dir().joinpath("VBALib.zip"))
