@@ -1,13 +1,13 @@
 from copy import copy
 from tempfile import gettempdir, TemporaryDirectory
-
+from typing import Union
 from zebra_vba_packager import (
     Config,
     Source,
     compile_xl,
     runmacro_xl,
-    pack,
     backup_last_50_paths,
+    pack
 )
 from locate import this_dir
 from textwrap import dedent
@@ -28,6 +28,8 @@ with TemporaryDirectory() as tempdir:
 output = this_dir().joinpath("VBALib")
 
 
+def to_ln(s: Union[str, bytes]):
+    #if s are bytes
     if isinstance(s, bytes):
         return s.replace(b"\r\n", b"\n")
     else:
