@@ -28,10 +28,16 @@ with TemporaryDirectory() as tempdir:
 output = this_dir().joinpath("VBALib")
 
 
+    if isinstance(s, bytes):
+        return s.replace(b"\r\n", b"\n")
+    else:
+        return s.replace("\r\n", "\n")
+
+
 def mid_process(source):
     for pth in source.temp_transformed.rglob("*.bas"):
         with pth.open("rb") as f:
-            txt_lines = f.read().split(b"\r\n")
+            txt_lines = to_ln(f.read()).split(b"\n")
 
         do_overwrite = False
         for i, line in enumerate(txt_lines):
@@ -68,6 +74,8 @@ def office64_ptr_compatability(bin_lines):
 
     i = -1
     while (i := i + 1) < len(bin_lines):
+        if b'declare' in bin_lines[i].lower():
+            print(bin_lines[i])
         if bin_lines[i].strip().lower().split()[1:2] == [b"declare"]:
             txt64 = (
                 bin_lines[i]
@@ -132,7 +140,7 @@ for fpath in common_lib.output_dir.glob("*.bas"):
         continue
 
     with fpath.open("rb") as f:
-        txt_lines = f.read().split(b"\r\n")
+        txt_lines = to_ln(f.read()).split(b"\n")
 
     txt_lines = office64_ptr_compatability(txt_lines)
     i = functions_start(txt_lines)
@@ -174,8 +182,8 @@ with common_lib.output_dir.joinpath("concatenated.bas").open("wb") as f:
     f.write(
         b"\r\n".join(
             [b'Attribute VB_Name = "VLib"']
-            + all_pointer_declare
             + [b"Option Explicit"]
+            + all_pointer_declare
             + all_precode_declare
             + all_bas_lines
         )
