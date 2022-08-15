@@ -11,7 +11,7 @@ Attribute VB_Exposed = True
 Option Explicit
 '#
 '///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-' Copyright Â© 2022 W. GarcÃ­a
+' Copyright © 2022 W. García
 ' GPL-3.0 license | https://www.gnu.org/licenses/gpl-3.0.html/
 ' https://ingwilfredogarcia.wordpress.com
 '///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1108,7 +1108,7 @@ Private Function FormatLiteralString(ByRef LiteralString As String) As String
     FormatLiteralString = MidB$(LiteralString, 3, LenB(LiteralString) - 4)
 End Function
 Private Function Gamma(ByRef X As Double) As Double
-    'Copyright Â© 2004, Leonardo Volpi & Foxes Team.
+    'Copyright © 2004, Leonardo Volpi & Foxes Team.
     Dim mantissa As Double, Expo As Double, z As Double
     Dim t As Double, Y As Double, e As Long
     If X <= 0 And X - Int(X) = 0 Then 'negative integer
@@ -1127,7 +1127,7 @@ Private Function Gamma(ByRef X As Double) As Double
 End Function
 
 ' gamma  - Lanczos approximation algorithm for gamma function
-'Copyright Â© 2004, Leonardo Volpi & Foxes Team.
+'Copyright © 2004, Leonardo Volpi & Foxes Team.
 Private Sub GammaSplit(ByVal X As Double, ByRef mantissa As Double, ByRef Expo As Double)
 Dim z As Double, Cf(14) As Double, w As Double, i As Long, s As Double, p As Double
 Const G_ As Double = 4.7421875  '607/128

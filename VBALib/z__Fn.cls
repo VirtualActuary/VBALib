@@ -12,6 +12,9 @@ Attribute VB_Exposed = True
 
 Option Explicit
 
+'*************** aFSO
+Public fso As New FileSystemObject
+
 '*************** aErrorEnums
 Enum ErrNr
     '********************************************
@@ -134,9 +137,6 @@ Enum ErrNr
     UnableToCreateEmbeddedObject = 31032
     ErrorSavingToFile = 31036
 End Enum
-
-'*************** aFSO
-Public fso As New FileSystemObject
 
 '*************** Casing
 ' Uncomment and comment block to get casing back for the project

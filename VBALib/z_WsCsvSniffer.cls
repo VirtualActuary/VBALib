@@ -9,7 +9,7 @@ Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = False
 '#
 '////////////////////////////////////////////////////////////////////////////////////////////
-' Copyright Â© 2022 W. GarcÃ­a
+' Copyright © 2022 W. García
 ' GPL-3.0 license | https://www.gnu.org/licenses/gpl-3.0.html/
 ' https://ingwilfredogarcia.wordpress.com
 '#
@@ -138,10 +138,10 @@ Private Function IsAlphaNumeric(value As Variant) As Boolean
     IsAlphaNumeric = tmpBool
 End Function
 Private Function IsCurrency(value As Variant) As Boolean
-    If LikeCompare(value, "[$â‚¬Â£Â¥]#*[.,]##", "[$â‚¬Â£Â¥][ ]#*[.,]##") Then
+    If LikeCompare(value, "[$€£¥]#*[.,]##", "[$€£¥][ ]#*[.,]##") Then
         IsCurrency = IsNumeric(Format(MidB(value, 3), "#,#0.00"))
     Else
-        If LikeCompare(value, "[ ][$â‚¬Â£Â¥]#*[.,]##", "[ ][$â‚¬Â£Â¥][ ]#*[.,]##") Then
+        If LikeCompare(value, "[ ][$€£¥]#*[.,]##", "[ ][$€£¥][ ]#*[.,]##") Then
             IsCurrency = IsNumeric(Format(MidB(value, 5), "#,#0.00"))
         End If
     End If
