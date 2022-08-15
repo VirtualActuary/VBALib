@@ -141,7 +141,7 @@ Public Function Inject(ByVal source As String, ParamArray values() As Variant) A
             ' Looking for pattern like: {key}
             ' First capture group is the full pattern: {key}
             ' Second capture group is just the name:    key
-            .Pattern = "(?:^|[^\\])(\{([A-zÃ€-Ã¿0-9\s]*)\})"
+            .Pattern = "(?:^|[^\\])(\{([A-z�-�0-9\s]*)\})"
 
             ' Used to make sure there are even number of uniqueKeys and values.
             Dim keys As New Scripting.Dictionary

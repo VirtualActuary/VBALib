@@ -9,14 +9,14 @@ Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = False
 '#
 '////////////////////////////////////////////////////////////////////////////////////////////
-' Copyright Â© 2022 W. GarcÃ­a
+' Copyright © 2022 W. García
 ' GPL-3.0 license | https://www.gnu.org/licenses/gpl-3.0.html/
 ' https://ingwilfredogarcia.wordpress.com
 '#
 '////////////////////////////////////////////////////////////////////////////////////////////
 ' GENERAL INFO:
 ' CSVTextStream is an easy-to-use class module developed to enable I/O operations over "big"
-' text files, at high speed, from VBA. The module hasnâ€™t reference to any external API
+' text files, at high speed, from VBA. The module hasn’t reference to any external API
 ' library and has the ability to read and write UTF-8 encoded files.
 '////////////////////////////////////////////////////////////////////////////////////////////
 '#
@@ -83,7 +83,7 @@ End Enum
 '#
 ' PROPERTIES:
 Public Property Get atEndOfStream() As Boolean
-Attribute atEndOfStream.VB_Description = "Gets the pointerâ€™s overall status over the text stream."
+Attribute atEndOfStream.VB_Description = "Gets the pointer’s overall status over the text stream."
     atEndOfStream = P_ATENDOFSTREAM
 End Property
 Public Property Get bufferLength() As Long
@@ -91,7 +91,7 @@ Attribute bufferLength.VB_Description = "Gets the number of string characters in
     bufferLength = P_BUFFERLENGTH
 End Property
 Public Property Get bufferSize() As Single
-Attribute bufferSize.VB_Description = "Gets or sets the bufferâ€™s size, in MB, for text stream operations."
+Attribute bufferSize.VB_Description = "Gets or sets the buffer’s size, in MB, for text stream operations."
     bufferSize = P_BUFFERSIZE
 End Property
 Public Property Let bufferSize(value As Single)
@@ -139,7 +139,7 @@ Attribute pointerPosition.VB_Description = "Gets the overall pointer position ov
     End If
 End Property
 Public Property Get streamLength() As Long
-Attribute streamLength.VB_Description = "Gets the current opened fileâ€™s size, in Bytes."
+Attribute streamLength.VB_Description = "Gets the current opened file’s size, in Bytes."
     streamLength = P_STREAMLENGTH
 End Property
 Public Property Get unifiedLFOutput() As Boolean
@@ -311,7 +311,7 @@ Attribute ReadText.VB_Description = "Reads a number of characters from the strea
     End If
 End Sub
 Public Sub RestartPointer()
-Attribute RestartPointer.VB_Description = "Moves the pointer to the text streamâ€™s beginning position."
+Attribute RestartPointer.VB_Description = "Moves the pointer to the text stream’s beginning position."
     If P_ISOPENSTREAM Then
         Seek #FileHandled, 1
         StartVariables
