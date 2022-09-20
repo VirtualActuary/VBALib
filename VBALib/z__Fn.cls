@@ -8,14 +8,20 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 
-' Use a* so this is on top of the fn. MiscF library
-
+'@IgnoreModule ImplicitByRefModifier
 Option Explicit
 
-'*************** aFSO
+'*************** MiscFSO
+' allows us to use FSO functions anywhere in the project
+' Use this link to see the available functions + documentation for the the fso object.
+' https://docs.microsoft.com/en-us/office/vba/language/reference/user-interface-help/filesystemobject-object
+'
+' Additional FSO-related functions are added here, as well as wrapper functions of the FSO class
+' where we want different/additional functionality.
+
 Public fso As New FileSystemObject
 
-'*************** aErrorEnums
+'*************** MiscErrorEnums
 Enum ErrNr
     '********************************************
     'These are internal error codes collected from
@@ -138,28 +144,25 @@ Enum ErrNr
     ErrorSavingToFile = 31036
 End Enum
 
-'*************** Casing
-' Uncomment and comment block to get casing back for the project
-'
-'
-'Dim J
-'Dim I
-'Dim M
-'Dim WB
-'Dim WS
-'Dim dict ' for now... :/
-'Dim r ' for now... :/
-'Dim Keys
-'Dim Columns
-'Dim Values
-'Dim Column
-'Dim ColumnName
-'Dim Name
-'Dim Path
-'Dim After
-'Dim Rows
-
 '*************** MiscArray
+Public Function ArrayToCollection(arr() As Variant) As Collection
+    ' Take an array as an input and return it as a Collection
+    '
+    ' Args:
+    '   arr: Input array
+    '
+    ' Returns:
+    '   Collection containing the values of the input array.
+    
+    Dim CurrVal As Variant
+    Dim col1 As Collection
+    Set col1 = New Collection
+    For Each CurrVal In arr
+        col1.Add CurrVal
+    Next
+    Set ArrayToCollection = col1
+End Function
+
 Public Function ErrorToNullStringTransformation(tableArr() As Variant) As Variant
     ' Replaces all Errors in the input array with vbNullString.
     ' The input array is modified (pass by referance) and the function returns the array
@@ -436,6 +439,76 @@ Public Function IsValueInCollection(col As Collection, val As Variant, Optional 
     Next ValI
 End Function
 
+Public Sub ConcatCollections(ParamArray CollectionArr() As Variant)
+    ' Concatenate multiple Collections, thereby manipulating the first Collection.
+    ' Args:
+    '   CollectionArr: Array of the input collections.
+    
+    Dim col As Variant
+    For Each col In CollectionArr
+        If Not TypeOf col Is Collection Then
+            Dim errmsg As String
+            errmsg = "All inputs need to be Collections"
+            On Error Resume Next: errmsg = errmsg & ". Got type '" & TypeName(col) & "'": On Error GoTo 0
+            Err.Raise 5, , errmsg
+        End If
+    Next col
+    
+    Dim I As Long
+    Dim J As Long
+    For J = 1 To UBound(CollectionArr)
+        For I = 1 To CollectionArr(J).Count
+            CollectionArr(0).Add CollectionArr(J).Item(I)
+        Next
+    Next
+
+End Sub
+
+Public Function JoinCollections(ParamArray CollectionArr()) As Collection
+    ' Joins multiple Collections and returns the result.
+    ' None of the inputs get manipulated.
+    '
+    ' Args:
+    '   CollectionArr: Array of the input collections.
+    '
+    ' Returns:
+    '   Returns a new Collection of the joined Collections.
+
+    Dim col As Variant
+    For Each col In CollectionArr
+        If Not TypeOf col Is Collection Then
+            Dim errmsg As String
+            errmsg = "All inputs need to be Collections"
+            On Error Resume Next: errmsg = errmsg & ". Got type '" & TypeName(col) & "'": On Error GoTo 0
+            Err.Raise 5, , errmsg
+        End If
+    Next col
+    
+    Dim I As Long
+    Dim ColResult As New Collection
+
+    For Each col In CollectionArr
+        For I = 1 To col.Count
+            ColResult.Add col.Item(I)
+        Next
+    Next col
+
+    Set JoinCollections = ColResult
+End Function
+
+Function CollectionToArray(Coll As Collection) As Variant
+    ' Create an Array from a Collection.
+    Dim Result As Variant
+    Dim I As Long
+    ReDim Result(Coll.Count - 1)
+    
+    For I = 1 To Coll.Count
+        Result(I - 1) = Coll(I)
+    Next I
+    
+    CollectionToArray = Result
+End Function
+
 '*************** MiscCollectionCreate
 Public Function col(ParamArray Args() As Variant) As Collection
     ' Create a Collection from a list of entries.
@@ -491,19 +564,19 @@ End Function
 
 '*************** MiscCollectionSort
 Private Sub MiscCollectionSort_TestBubbleSort()
-    Dim coll As Collection
-    Set coll = col("variables10", "variables", "variables2", "variables_10", "variables_2")
-    Set coll = BubbleSort(coll)
+    Dim Coll As Collection
+    Set Coll = col("variables10", "variables", "variables2", "variables_10", "variables_2")
+    Set Coll = BubbleSort(Coll)
     
-    Debug.Print coll(1), "variables"
-    Debug.Print coll(2), "variables10" ' :/
-    Debug.Print coll(3), "variables2" ' :/
-    Debug.Print coll(4), "variables_10" ' :/
-    Debug.Print coll(5), "variables_2" ' :/
+    Debug.Print Coll(1), "variables"
+    Debug.Print Coll(2), "variables10" ' :/
+    Debug.Print Coll(3), "variables2" ' :/
+    Debug.Print Coll(4), "variables_10" ' :/
+    Debug.Print Coll(5), "variables_2" ' :/
     
 End Sub
 
-Public Function BubbleSort(coll As Collection) As Collection
+Public Function BubbleSort(Coll As Collection) As Collection
     
     ' from: https://github.com/austinleedavis/VBA-utilities/blob/f23f1096d8df0dfdc740e5a3bec36525d61a3ffc/Collections.bas#L73
     ' this is an easy implementation but a slow sorting algorithm.
@@ -519,7 +592,7 @@ Public Function BubbleSort(coll As Collection) As Collection
     Set SortedColl = New Collection
     Dim vItm As Variant
     ' copy the collection"
-    For Each vItm In coll
+    For Each vItm In Coll
         SortedColl.Add vItm
     Next vItm
 
@@ -615,6 +688,90 @@ Public Function dictget(d As Dictionary, key As Variant, Optional default As Var
         
         Err.Raise ErrNr.SubscriptOutOfRange, , ErrorMessage(ErrNr.SubscriptOutOfRange, errmsg)
     End If
+End Function
+
+Public Sub ConcatDicts(ParamArray Dicts())
+    ' Concatenate Dictionaries to the first dictionary, thereby manipulating the first dictionary.
+    ' Nothing gets returned since the first Dictionary gets manipulated.
+    ' If not all of the inputs are Dictionaries, an error will be raised.
+    ' If the CompareMode of the different dictionaries don't match, an error will be raised.
+    '
+    ' Args:
+    '   dicts: Array of dictionaries.
+    
+    Dim dictCompareMode As Long
+    dictCompareMode = -999  ' This is a placeholder value
+    Dim dict As Variant
+    For Each dict In Dicts
+        If Not TypeOf dict Is Dictionary Then
+            Dim errmsg As String
+            errmsg = "All inputs need to be Dictionaries"
+            On Error Resume Next: errmsg = errmsg & ". Got type '" & TypeName(dict) & "'": On Error GoTo 0
+            Err.Raise 5, , errmsg
+        Else
+            If dictCompareMode <> -999 And dictCompareMode <> dict.CompareMode Then
+                Err.Raise -987, , "CompareMode of all Dictionaries aren't the same."
+            End If
+            dictCompareMode = dict.CompareMode
+        
+        End If
+    Next dict
+
+    Dim J As Long
+
+    Dim key As Variant
+    For J = 1 To UBound(Dicts)
+        For Each key In Dicts(J).Keys
+            Dicts(0)(key) = Dicts(J).Item(key)
+        Next key
+
+    Next
+
+End Sub
+
+Public Function JoinDicts(ParamArray Dicts()) As Dictionary
+    ' Joins multiple Dictionaries and returns the result.
+    ' None of the inputs get manipulated.
+    ' If not all of the inputs are Dictionaries, an error will be raised.
+    ' If the CompareMode of the different dictionaries don't match, an error will be raised.
+    '
+    ' Args:
+    '   dicts: Array of the input Dictionaries.
+    '
+    ' Returns:
+    '   Returns a new Dictionary of the joined Dictionaries.
+    
+    Dim dictCompareMode As Long
+    dictCompareMode = -999  ' This is a placeholder value
+    Dim dict As Variant
+    For Each dict In Dicts
+        If Not TypeOf dict Is Dictionary Then
+            Dim errmsg As String
+            errmsg = "All inputs need to be Dictionaries"
+            On Error Resume Next: errmsg = errmsg & ". Got type '" & TypeName(dict) & "'": On Error GoTo 0
+            Err.Raise 5, , errmsg
+        Else
+            If dictCompareMode <> -999 And dictCompareMode <> dict.CompareMode Then
+                Err.Raise -987, , "CompareMode of all Dictionaries aren't the same."
+            End If
+            dictCompareMode = dict.CompareMode
+        
+        End If
+    Next dict
+   
+    Dim d As New Dictionary
+    d.CompareMode = dictCompareMode
+    Dim key As Variant
+
+    For Each dict In Dicts
+        For Each key In dict.Keys
+            d(key) = dict.Item(key)
+        Next key
+
+    Next dict
+
+    Set JoinDicts = d
+
 End Function
 
 '*************** MiscDictionaryCreate
@@ -720,28 +877,52 @@ Public Function DictsToTable(TableDicts As Collection, start_range As Range, Tab
             End If
         Next DictEntry
     Next dict
-
-    start_range.Worksheet.ListObjects.Add(SourceType:=xlSrcRange, Source:=start_range, _
-    xlListObjectHasHeaders:=xlYes, tablestyleName:="TableStyleMedium2").Name = TableName
-
-    Set CurrentTable = start_range.Worksheet.ListObjects(TableName)
-    CurrentTable.ListColumns.Item(1).Name = TableDicts(1).Keys()(0)
     
     ' Add column headers.
-    For I = 1 To NumberOfColumns - 1
-        CurrentTable.ListColumns.Add.Name = TableDicts(1).Keys()(I)
+    For I = 1 To NumberOfColumns
+        start_range.Offset(0, I - 1).Value = TableDicts(1).Keys()(I - 1)
     Next I
     
     ' add values.
     For J = 1 To NumberOfRows
-        CurrentTable.ListRows.Add
         For I = 1 To NumberOfColumns
-            CurrentTable.ListRows.Item(J).Range(I) = TableDicts(J)(ColumnNames(I - 1))
+            MiscDictsToTable_SetCellValue start_range.Offset(J, I - 1), TableDicts(J)(ColumnNames(I - 1))
         Next I
     Next J
     
+    Set CurrentTable = start_range.Worksheet.ListObjects.Add(SourceType:=xlSrcRange, Source:=start_range.Resize(NumberOfRows + 1, NumberOfColumns), _
+    xlListObjectHasHeaders:=xlYes, tablestyleName:="TableStyleMedium2")
+    
+    CurrentTable.Name = TableName
+
     Set DictsToTable = CurrentTable
 End Function
+
+Private Sub MiscDictsToTable_SetCellValue(Cell As Range, Value As Variant)
+    ' Sets a cell's value, and makes allowance for Excel's unwanted
+    ' autocorrecting of strings starting with `=`. Using VBA you can set a formula
+    ' Explicitly using Cell.Formula = FormulaString instead of relying on Excel's autorcorrect
+    '
+    ' Args:
+    '   Cell: the cell set
+    '   Value: the value to give the cell
+    '
+    ' Returns:
+    '   Returns nothing. Side-effect on the value of the cell
+    
+    If Application.WorksheetFunction.IsText(Value) Then
+        If Left(Value, 1) = "=" Then
+            With Cell
+                .NumberFormat = "@" ' Format as TEXT. It avoids the auto-correction of '=foo' to =foo
+                .Value = Value
+            End With
+            Exit Sub
+        End If
+    End If
+    
+    Cell.Value = Value
+        
+End Sub
 
 '*************** MiscEnsureDictIUtil
 Public Function EnsureDictI(Container As Variant) As Object
@@ -961,9 +1142,9 @@ Public Function BreakLines(SubMessage As String) As String
     For I = LBound(MsgArr) To UBound(MsgArr)
         ' only split if one "word" is longer than 100 or 50 characters
         If Len(MsgArr(I)) > 100 Then
-            MsgArr(I) = BreakLines & Mid(MsgArr(I), 1, 50) & chr(10) & Mid(MsgArr(I), 51, 50) & chr(10) & right(MsgArr(I), Len(MsgArr(I)) - 50 * 2)
+            MsgArr(I) = BreakLines & Mid(MsgArr(I), 1, 50) & chr(10) & Mid(MsgArr(I), 51, 50) & chr(10) & Right(MsgArr(I), Len(MsgArr(I)) - 50 * 2)
         ElseIf Len(MsgArr(I)) > 50 Then
-            MsgArr(I) = Mid(MsgArr(I), 1, 50) & chr(10) & right(MsgArr(I), Len(MsgArr(I)) - 50)
+            MsgArr(I) = Mid(MsgArr(I), 1, 50) & chr(10) & Right(MsgArr(I), Len(MsgArr(I)) - 50)
         End If
     Next I
     
@@ -1028,6 +1209,7 @@ End Function
 Public Function OpenWorkbook( _
       Path As String _
     , Optional ReadOnly As Boolean = False _
+    , Optional DisableUpdateLinksAndDisplayAlerts = True _
     ) As Workbook
     ' Open a Workbook. An error is raised if a file with the same name is already open.
     ' If ReadOnly is True and the Workbook is already open but not in ReadOnly mode, an error is raised.
@@ -1053,11 +1235,25 @@ Public Function OpenWorkbook( _
             Err.Raise -999, , "Workbook'" & fso.GetFileName(Path) & "' is already open and is not in ReadOnly mode. Only closed workbooks can be opened as readonly."
         End If
     Else
-        Set OpenWorkbook = Workbooks.Open(Path, ReadOnly:=ReadOnly)
+        If DisableUpdateLinksAndDisplayAlerts Then
+            Dim CurrentAskToUpdateLinks As Boolean
+            Dim CurrentDisplayAlerts As Boolean
+            CurrentAskToUpdateLinks = Application.AskToUpdateLinks
+            CurrentDisplayAlerts = Application.DisplayAlerts
+            Application.AskToUpdateLinks = False
+            Application.DisplayAlerts = False
+            
+            Set OpenWorkbook = Workbooks.Open(Path, ReadOnly:=ReadOnly)
+            
+            Application.AskToUpdateLinks = CurrentAskToUpdateLinks
+            Application.DisplayAlerts = CurrentDisplayAlerts
+        Else
+            Set OpenWorkbook = Workbooks.Open(Path, ReadOnly:=ReadOnly)
+        End If
     End If
 End Function
 
-Public Function LastRow(WS As Worksheet) As Integer
+Public Function LastRow(WS As Worksheet) As Long
     ' Fetch the last row number that contains a value in any of the columns.
     ' Returns 0 if the Worksheet is empty.
     '
@@ -1074,7 +1270,7 @@ Public Function LastRow(WS As Worksheet) As Integer
     LastRow = WS.Cells.Find(What:="*", After:=WS.Cells(1, 1), LookIn:=xlValues, lookat:=xlPart, SearchOrder:=xlByRows, SearchDirection:=xlPrevious).row
 End Function
 
-Public Function LastColumn(WS As Worksheet) As Integer
+Public Function LastColumn(WS As Worksheet) As Long
     ' Fetch the last column number that contains a value in any of the rows.
     ' Returns 0 if the Worksheet is empty.
     '
@@ -1103,7 +1299,8 @@ Public Function LastCell(WS As Worksheet) As Range
     ' Returns:
     '   The last cell in a worksheet as a range.
     
-    Dim row, Column As Integer
+    Dim row As Long
+    Dim Column As Long
     row = LastRow(WS)
     Column = LastColumn(WS)
     If row = 0 Or Column = 0 Then
@@ -1192,6 +1389,36 @@ Public Sub UnFreezePanes(WS As Worksheet)
     End With
     
     CurrentActiveSheet.Activate
+End Sub
+
+'*************** MiscFSO
+Public Function GetAllFilesRecursive(Directory As folder) As Collection
+    ' Get all files in the given directory and sub-directories and
+    ' return a Collection with the File objects.
+    '
+    ' Args:
+    '   Directory: The directory to get the files from.
+    '
+    ' Returns:
+    '   A Collection with all the File objects.
+    
+    Set GetAllFilesRecursive = New Collection
+    MiscFSO_GetAllFilesHelper Directory, GetAllFilesRecursive
+    
+End Function
+
+Private Sub MiscFSO_GetAllFilesHelper(Directory As folder, ListOfFiles As Collection)
+    
+    Dim F As File
+    For Each F In Directory.Files
+        ListOfFiles.Add F
+    Next F
+    
+    Dim SubDir As folder
+    For Each SubDir In Directory.SubFolders
+        MiscFSO_GetAllFilesHelper SubDir, ListOfFiles
+    Next SubDir
+    
 End Sub
 
 '*************** MiscGetUniqueItems
@@ -1441,6 +1668,65 @@ Public Function hasKey(Container As Variant, key As Variant) As Boolean
     
 End Function
 
+'*************** MiscListOfChildren
+Function GetListOfChildren(Depths As Collection, Optional SearchDown As Boolean = True) As Collection
+    ' Given a collection of depths (integers), returns the position of the immediate
+    ' children for each position
+    '
+    ' Args:
+    '    Depths: a collection of the depths for each element from which the children can be inferred
+    '    SearchDown: whether to look downwards or upwards for children. Defaults to look downwards
+    '
+    ' Returns:
+    '    Collection for each item that contains the position of its children
+    
+    Dim ListOfChildren As New Collection
+    
+    Dim c As Long
+    ' Create empty collections for the output
+    For c = 1 To Depths.Count
+        ListOfChildren.Add New Collection
+    Next c
+    
+    Dim I As Long
+    Dim idx As Long
+    
+    If SearchDown Then ' look down / forward in list
+        For I = 1 To Depths.Count
+            idx = I
+            Do While idx < Depths.Count ' last one doesn't have children by definition
+                idx = idx + 1 ' move down / forward in list
+                If Depths(idx) <= Depths(I) Then
+                    Exit Do
+                End If
+                
+                If Depths(idx) = Depths(I) + 1 Then
+                    ListOfChildren(I).Add idx
+                End If
+            Loop
+            
+        Next I
+    Else ' look up / backwards in list
+        For I = 1 To Depths.Count
+            idx = I
+            Do While idx > 1 ' first one doesn't have children by definition
+                idx = idx - 1 ' move up / backwards in list
+                If Depths(idx) <= Depths(I) Then
+                    Exit Do
+                End If
+                
+                If Depths(idx) = Depths(I) + 1 Then
+                    ListOfChildren(I).Add idx
+                End If
+            Loop
+            
+        Next I
+    End If
+    
+    Set GetListOfChildren = ListOfChildren
+    
+End Function
+
 '*************** MiscNewKeys
 Public Function NewSheetName(Name As String, Optional WB As Workbook)
     ' this module is used to generate new keys to a container (collections, dict, sheets, etc)
@@ -1524,24 +1810,408 @@ Public Function GetNewKey(Name As String, Container As Variant, Optional MaxLeng
 End Function
 
 '*************** MiscOs
-Public Function Path(ParamArray Paths() As Variant) As String
-    ' Combines folder pathes and the name of folders or a file and
-    ' returns the combination with valid path separators.
-    '
-    ' Args:
-    '   entries: The folder pathes and the name of folders or a file to be combined.
+Public Function Is64BitXl() As Boolean
+    ' Check if the current version of Excel is 64-bit.
     '
     ' Returns:
-    ' The combination of paths with valid path separators.
+    '   True if Excel is 64-bit. False if not.
     
-    Dim Entry As Variant
-    
-    Path = Paths(0)
+    #If Win64 Then
+        Is64BitXl = True
+    #Else
+        Is64BitXl = False
+    #End If
+End Function
 
-    For Entry = LBound(Paths) + 1 To UBound(Paths)
-        Path = fso.BuildPath(Path, Paths(Entry))
+Public Function ExpandEnvironmentalVariables(pth As String) As String
+    ' Find the Windows/Linux system environment variables in the input path
+    ' and convert it to string in the input path and return it.
+    '
+    ' Args:
+    '   pth: input Path
+    '
+    ' Returns:
+    '   A string of Path with environment variables converted to its matching value.
+    
+    ExpandEnvironmentalVariables = pth
+    If InStr(pth, "%") > 0 Then
+        Dim I As Integer
+        Dim EnvironVar As String
+        Dim EnvironVarArr() As String
+        EnvironVarArr = Split(pth, "%")
+        Dim IsEnvironmentalVariable As Boolean
+        
+        Do While UBound(EnvironVarArr) >= 2
+            IsEnvironmentalVariable = False
+            EnvironVar = Environ(EnvironVarArr(1))
+            If Len(EnvironVar) Then
+                IsEnvironmentalVariable = True
+            End If
+
+            If IsEnvironmentalVariable = True Then
+                EnvironVarArr(0) = EnvironVarArr(0) & EnvironVar & EnvironVarArr(2)
+                If UBound(EnvironVarArr) > 2 Then
+                    For I = 1 To UBound(EnvironVarArr) - 2
+                        EnvironVarArr(I) = EnvironVarArr(I + 2)
+                    Next
+                End If
+                ReDim Preserve EnvironVarArr(UBound(EnvironVarArr) - 2)
+                
+            Else
+                EnvironVarArr(0) = EnvironVarArr(0) & "%" & EnvironVarArr(1)
+                For I = 1 To UBound(EnvironVarArr) - 1
+                    EnvironVarArr(I) = EnvironVarArr(I + 1)
+                Next
+                ReDim Preserve EnvironVarArr(UBound(EnvironVarArr) - 1)
+            End If
+        Loop
+        
+        ' Add the last entries that can't be EnvironVar
+        For I = 1 To UBound(EnvironVarArr)
+            EnvironVarArr(0) = EnvironVarArr(0) & "%" & EnvironVarArr(I)
+        Next
+        ExpandEnvironmentalVariables = EnvironVarArr(0)
+    End If
+    
+End Function
+
+Private Function MiscOs_parentDir(ByVal folder)
+    MiscOs_parentDir = Left$(folder, InStrRev(folder, "\") - 1)
+End Function
+
+Public Sub CreateFolders(ByVal strPath As String, _
+                  Optional doShell As Boolean = False)
+    ' source: https://stackoverflow.com/questions/10803834/is-there-a-way-to-create-a-folder-and-sub-folders-in-excel-vba
+    ' this code will make the folders recursively if required.
+    ' the strPath can, therefore, be a Path where multiple sub-dirs don't exist yet.
+    '
+    ' Args:
+    '   strPath: The desired directory
+    '   doShell: if True, the directories will be created using WScript.shell
+
+    Dim elm As Variant
+    Dim strCheckPath As String
+    Dim I As Integer
+    Dim J As Integer
+    Dim pathTempSplit() As String
+    strPath = EvalPath(strPath)
+    Dim wsh As Object
+    Set wsh = VBA.CreateObject("WScript.Shell")
+
+    Dim pathTemp As String ' for when the relative names becomes too long:
+    pathTemp = EvalPath(strPath)
+
+    If fso.FolderExists(pathTemp) Then Exit Sub
+        ' if the folder already exists, no need to create anything
+
+    strCheckPath = ""
+
+    pathTempSplit = Split(pathTemp, "\")
+    If Left(pathTemp, 2) = "\\" Then
+        ' then it's an unmapped server
+        ' we do not want to check if the server exists, so move to the next directory/folder
+        For I = 0 To 2
+            strCheckPath = strCheckPath & pathTempSplit(I) & "\"
+        Next I
+    End If
+
+    For J = I To UBound(pathTempSplit)
+        strCheckPath = strCheckPath & pathTempSplit(J) & "\"
+        If fso.FolderExists(strCheckPath) = False Then
+            If doShell Then
+                wsh.Run "cmd /c ""mkdir """ + strCheckPath + """"""
+            Else
+                On Error Resume Next
+                MkDir strCheckPath
+                On Error GoTo 0
+            End If
+        End If
+    Next J
+    If Not fso.FolderExists(pathTemp) Then
+        Err.Raise 53, , "Could not create folder with path: " & pathTemp & ". Ensure you have write access to the required folder."
+    End If
+End Sub
+
+Public Function RunShell(ByVal command As String, Optional WaitOnReturn As Boolean = True)
+    ' run WScript.Shell with the selected command.
+    '
+    ' Args:
+    '   command: Command to execute.
+    '   WaitOnReturn: If True, The program will wait until this shell command is finishes before continuing.
+    '
+    ' Returns:
+    '   The task ID of the started program.
+    
+    Dim wsh As Object
+    Set wsh = VBA.CreateObject("WScript.Shell")
+    'RunShell = wsh
+    ':https://docs.microsoft.com/en-us/office/vba/language/reference/user-interface-help/shell-function
+    Dim windowStyle As Integer: windowStyle = 0 ' vbHide (no pop-ups)
+    
+    ' If the Shell function successfully executes the named file, it returns the task ID of the started program.
+    RunShell = wsh.Run(command, windowStyle, WaitOnReturn)
+End Function
+
+'*************** MiscPath
+Public Function EvalPath(pth As String, Optional WB As Workbook) As String
+    ' Convert a path to absolute path.
+    ' Converts system variables to String in the Path.
+    ' Convert "/" to "\" in the Path.
+    ' If the input Path doesn't start with "[A-Za-z]" and then ":" or starts with "\\",
+    ' the selected WorkBook's Path is used to create the absolute path of the input Path.
+    '
+    ' Args:
+    '   Pth: input path
+    '   WB: Optional WorkBook.
+    '
+    ' Returns:
+    '   The absolute Path.
+    
+    If WB Is Nothing Then Set WB = ThisWorkbook
+
+    EvalPath = ExpandEnvironmentalVariables(pth)
+    
+    EvalPath = AbsolutePath(EvalPath, WB)
+End Function
+
+Function AbsolutePath(ByVal PathString As String, Optional WB As Workbook = Nothing) As String
+    ' Convert the input Path string to an absolute path string.
+    ' We opt for using backslashes `\` only, to
+    ' allow support for network paths like `\\server1\asdf` on Windows.
+    '
+    ' Args:
+    '   PathString: Path to be converted to an absolute path
+    '   WB: The WorkBook that will be used to convert the PathString to an absolute Path
+    '       if the PathString is a relative Path.
+    '
+    ' Returns:
+    '   The Absolute Path as a string
+    
+    If WB Is Nothing Then Set WB = ThisWorkbook
+    PathString = MiscPath_ConvertToBackslashes(PathString)
+    Dim IsNetwokDrive As Boolean
+    IsNetwokDrive = False
+    
+    If IsAbsolutePath(PathString) Then
+        If PathHasServer(PathString) Then
+            ' fso.GetAbsolutePathName(...) doesn't work with network paths, so "x:\" gets added instead
+            ' to ensure fso.GetAbsolutePathName(...) can function.
+            ' The "x:\" gets replaced by "\\" in the last step
+            PathString = "x:\" & Mid(PathString, 3)
+            IsNetwokDrive = True
+        
+        ElseIf Left(PathString, 1) = "\" Then
+            ' If PathString starts with a "\" and its not a network drive, Prepend drive letter only.
+            ' fso.GetAbsolutePathName(...) points to ThisWorkbook's drive letter.
+            PathString = PathGetDrive(WB.Path) & PathString
+        End If
+    Else
+        ' Prepend WB.Path to PathString if not an absolute Path.
+        PathString = Path(WB.Path, PathString)
+    End If
+
+    ' Breaking example: fso.GetAbsolutePathName("\\hello\world\\..\2")
+    AbsolutePath = fso.GetAbsolutePathName(PathString)
+    If IsNetwokDrive Then
+        ' Remove the "x:\" prefix and replace it with "\\" if the PathString is a network drive.
+        AbsolutePath = "\\" & Mid(AbsolutePath, 4)
+    End If
+
+End Function
+
+Public Function Path(ParamArray Args() As Variant) As String
+    ' Combine paths or path segments.
+    '
+    ' It tries to follow the convention of Python's `pathlib.Path()` class. However,
+    ' here we simply return a string, not an object, so we are forced to decide up
+    ' front which path separators to use. We opt for using backslashes `\` only, to
+    ' allow support for network paths like `\\server1\asdf` on Windows.
+    '
+    ' Args:
+    '   Args:
+    '     The folder paths and the name of folders or a file to be combined. May be
+    '     provided as separate string arguments, or a single array or collection
+    '     argument. If the first argument is an Array or Collection, the rest of the
+    '     arguments will be ignored. Otherwise, each argument must be a string.
+    '
+    ' Returns:
+    '   The combination of paths with valid path separators.
+    '
+    ' Examples:
+    '   Using separate arguments (ParamArray):
+    '     ? Path("a", "b")
+    '     a/b
+    '
+    '   Using an array:
+    '     ? Path(array("a", "b"))
+    '     a/b
+    '
+    '   Using a collection:
+    '     ? Path(col("a", "b"))
+    '     a/b
+    '
+    '   See the unit tests for more examples.
+    
+    ' Process arguments
+    Dim ArgsCollection As Collection
+    Dim Arg As Variant
+    Dim TmpArr() As Variant
+    If TypeOf Args(0) Is Collection Then
+        ' Path(col("a", "b"))
+        Set ArgsCollection = Args(0)
+    ElseIf IsArray(Args(0)) Then
+        ' Path(array("a", "b"))
+        Set ArgsCollection = col()
+        For Each Arg In Args(0)
+            ArgsCollection.Add Arg
+        Next Arg
+    Else
+        ' Path("a", "b")
+        Set ArgsCollection = col()
+        For Each Arg In Args
+            ArgsCollection.Add Arg
+        Next Arg
+    End If
+    
+    ' Always use backslash, because we need to support server paths like `\\server1\asdf` on Windows.
+    ' This is unfortunate, because forward slashes `/` are the universal standard, and is even
+    ' supported by Windows in most places, while backslash `\` works ONLY on Windows.
+    Dim Slash As String
+    Slash = "\"
+    
+    ' Collect path segments from args.
+    Dim SegmentsRegex As Object
+    Set SegmentsRegex = PathSegmentsRegex()
+    Dim Segments As Collection
+    Set Segments = col()
+    Dim I As Integer
+    Dim SegmentMatches As Variant
+    Dim SegmentMatch As Variant
+    Dim LastKnownDrive As String
+    LastKnownDrive = ""
+    Dim ArgStr As String
+    For I = 1 To ArgsCollection.Count
+        ArgStr = ArgsCollection(I)
+        
+        If PathHasDrive(ArgStr) Then
+            ' This is an absolute path with a drive letter.
+            ' Throw away everything that came before it.
+            Set Segments = col()
+            LastKnownDrive = PathGetDrive(ArgStr)
+        ElseIf PathHasServer(ArgStr) Then
+            ' This is a network path.
+            ' Throw away everything that came before it, but preserve the extra leading
+            ' backslash, which indicates a network path.
+            Set Segments = col("\")
+        ElseIf PathStartsWithSlash(ArgStr) Then
+            ' This is an absolute path without a drive letter.
+            ' Throw away everything that came before it, but preserve the last known drive letter.
+            Set Segments = col(LastKnownDrive)
+        Else
+            ' This is a relative path. Continue collecting segments as normal.
+        End If
+        
+        Set SegmentMatches = SegmentsRegex.Execute(ArgStr)
+        For Each SegmentMatch In SegmentMatches
+            Segments.Add SegmentMatch.Value
+        Next SegmentMatch
     Next
     
+    'Debug.Print "Segment: " & Segments(1)
+    Path = Segments(1)
+    For I = 2 To Segments.Count
+        'Debug.Print "Segment: " & Segments(I)
+        Path = Path & Slash & Segments(I)
+    Next
+End Function
+
+Private Function MiscPath_ConvertToBackslashes(pth As String) As String
+    MiscPath_ConvertToBackslashes = Replace(pth, "/", "\")
+
+End Function
+
+Public Function IsAbsolutePath(P As String) As Boolean
+    ' Check if the given path is absolute. On Windows, this is when it starts with a forward slash, backslash, or drive letter.
+    IsAbsolutePath = PathHasDrive(P) Or PathStartsWithSlash(P)
+End Function
+
+Public Function PathStartsWithSlash(P As String) As Boolean
+    Dim Start As String
+    Start = Left(P, 1)
+    PathStartsWithSlash = (Start = "/") Or (Start = "\")
+End Function
+
+Public Function PathEndsWithSlash(P As String) As Boolean
+    Dim Last As String
+    Last = Right(P, 1)
+    PathEndsWithSlash = (Last = "/") Or (Last = "\")
+End Function
+
+Public Function PathHasServer(P As String) As Boolean
+    ' Check if the path has a server name at the start, e.g. `server1` in `\\server1\foo`.
+    ' Note that Windows does not see `//server1/foo` as a network path, but we will allow it.
+    PathHasServer = PathServerRegex().test(P)
+End Function
+
+Public Function PathGetServer(P As String) As String
+    ' Get the server name at the start of a path, e.g. `server1` in `\\server1\foo`.
+    ' Note that Windows does not see `//server1/foo` as a network path, but we will allow it.
+    Dim Matches As Variant
+    Set Matches = PathServerRegex().Execute(P)
+    
+    If Matches.Count <> 1 Then
+        PathGetServer = ""
+    Else
+        PathGetServer = Matches.Item(0).Value
+    End If
+End Function
+
+Public Function PathServerRegex() As Object
+    ' Get a regular expression object to match the server name at the start of a path, e.g. `server1` in `\\server1\foo`.
+    ' Note that Windows does not see `//server1/foo` as a network path, but we will allow it.
+    Dim Regex As Object
+    Set Regex = CreateObject("VBScript.RegExp")
+    Regex.Pattern = "^[\/\\][\/\\]([^\/\\]+)"
+    Regex.IgnoreCase = True
+    Regex.Global = False
+    Regex.MultiLine = False
+    
+    Set PathServerRegex = Regex
+End Function
+
+Public Function PathHasDrive(P As String) As Boolean
+    PathHasDrive = PathDriveRegex().test(P)
+End Function
+
+Public Function PathGetDrive(P As String) As String
+    Dim Matches As Variant
+    Set Matches = PathDriveRegex().Execute(P)
+    
+    If Matches.Count <> 1 Then
+        PathGetDrive = ""
+    Else
+        PathGetDrive = Matches.Item(0).Value
+    End If
+End Function
+
+Public Function PathDriveRegex() As Object
+    Dim Regex As Object
+    Set Regex = CreateObject("VBScript.RegExp")
+    Regex.Pattern = "^[a-z]:"
+    Regex.IgnoreCase = True
+    Regex.Global = False
+    Regex.MultiLine = False
+    
+    Set PathDriveRegex = Regex
+End Function
+
+Public Function PathSegmentsRegex() As Object
+    ' Get a regular expression that splits a path string into segments.
+    Set PathSegmentsRegex = CreateObject("VBScript.RegExp")
+    PathSegmentsRegex.Pattern = "[^\/\\]+"
+    PathSegmentsRegex.IgnoreCase = True
+    PathSegmentsRegex.Global = True
+    PathSegmentsRegex.MultiLine = False
 End Function
 
 '*************** MiscPowerQuery
@@ -1811,19 +2481,19 @@ Public Function RangeTo1DArray( _
     Values = r.Value
     Dim I As Long
     Dim J As Long
-    Dim counter As Long
-    counter = 0
+    Dim Counter As Long
+    Counter = 0
     For I = LBound(Values, 1) To UBound(Values, 1) ' rows
         For J = LBound(Values, 2) To UBound(Values, 2) ' columns
             If IsError(Values(I, J)) Then
                 ' if error, we cannot check if empty, we need to add it
-                arr(counter) = Values(I, J)
-                counter = counter + 1
+                arr(Counter) = Values(I, J)
+                Counter = Counter + 1
             ElseIf Values(I, J) = vbNullString And IgnoreEmpty Then
                 ReDim Preserve arr(UBound(arr) - 1) ' when there is an empty cell, just reduce array size by 1
             Else
-                arr(counter) = Values(I, J)
-                counter = counter + 1
+                arr(Counter) = Values(I, J)
+                Counter = Counter + 1
             End If
         Next J
     Next I
@@ -2068,7 +2738,7 @@ Public Function GetAllTables(WB As Workbook) As Collection
     
 End Function
 
-Function TableColumnToArray(TableDicts As Collection, ColumnName As String) As Variant()
+Public Function TableColumnToArray(TableDicts As Collection, ColumnName As String) As Variant()
     ' Append the selected key's value from each Dict in the input Collection to a 1-dimensional array
     '
     ' Args:
@@ -2081,13 +2751,253 @@ Function TableColumnToArray(TableDicts As Collection, ColumnName As String) As V
     Dim arr() As Variant
     ReDim arr(TableDicts.Count - 1) ' zero indexed
     Dim dict As Dictionary
-    Dim counter As Long
+    Dim Counter As Long
     For Each dict In TableDicts
-        arr(counter) = dictget(dict, ColumnName)
-        counter = counter + 1 ' zero indexing
+        arr(Counter) = dictget(dict, ColumnName)
+        Counter = Counter + 1 ' zero indexing
     Next dict
     
     TableColumnToArray = arr
+End Function
+
+Public Sub CopyTable(InputTableName As String _
+                    , StartRange As Range _
+                    , Optional OutputTableName As String _
+                    , Optional InputWB As Workbook)
+    ' Copy a List Object or TableRange to the desired location as a Table.
+    ' This can be in the same Workbook, or a different workbook.
+    ' The of the output Table NumberFormat is the same as the input table's.
+    '
+    ' Args:
+    '   InputTableName: Table name that will be copied.
+    '   StartRange: Range object of the output table's destination
+    '   OutputTableName: Name of the output table.
+    '                    If left empty, the input table's name gets used.
+    '   InputWB: WorkBook of the input Table. ThisWorkBook is used if left empty.
+
+    Dim col1 As Collection
+    Dim InputTableRange As Range
+    Dim OutputTableRange As Range
+    Dim I As Long
+    
+    If OutputTableName = "" Then
+        OutputTableName = InputTableName
+    End If
+    If InputWB Is Nothing Then Set InputWB = ThisWorkbook
+
+    Set col1 = TableToDicts(InputTableName, InputWB)
+    Set InputTableRange = TableRange(InputTableName, InputWB)
+    Set OutputTableRange = DictsToTable(col1, StartRange, OutputTableName).Range
+
+    For I = 1 To InputTableRange.Count
+        OutputTableRange(I).NumberFormat = InputTableRange(I).NumberFormat
+    Next
+    
+End Sub
+
+Function TableColumnToCollection(TableDicts As Collection, ColumnName As String) As Collection
+    ' Append the selected key's value from each Dict in the input Collection to a Collection
+    '
+    ' Args:
+    '   TableDicts: A collection of Dicts.
+    '   ColumnName: Name of the column that will be returned as a Collection.
+    '
+    ' Returns:
+    '   Collection of the selected column.
+    
+    Dim col1 As Collection
+    Dim dict As Dictionary
+    
+    Set col1 = New Collection
+    For Each dict In TableDicts
+        col1.Add dictget(dict, ColumnName)
+    Next dict
+    
+    Set TableColumnToCollection = col1
+End Function
+
+Public Sub ResizeLO(LO As ListObject, NumRows As Long)
+    ' Resize a table to the desired number of data rows. The columns remain unchanged.
+    ' If NumRows is set to "0", the table will instead be resized to "1" and the
+    ' content in that 1st row will be cleared.
+    '
+    ' Args:
+    '   LO: Selected List Object.
+    '   NumRows: Number of desired rows.
+    
+    If NumRows = 0 Then
+        LO.DataBodyRange.Delete
+        Exit Sub
+    End If
+    
+    Dim oldNumRows As Long
+    oldNumRows = LO.ListRows.Count
+    
+    ' Resize the table (add 1 to the number of rows because mListObject.Range
+    ' includes the header row).
+    LO.Resize _
+        LO.Range.Resize( _
+            NumRows + 1, _
+            LO.ListColumns.Count)
+    
+    ' If the table is resized to have one row, but the row contains no data,
+    ' the row will be treated as the Insert row, and the data row count will
+    ' remain zero.  This will cause problems since the table doesn't actually
+    ' have a DataBodyRange.  To avoid this situation, put a space in the first
+    ' column, which will cause the Insert row to change to a data row.  After
+    ' setting the value once, it can be removed and the row will remain part
+    ' of the DataBodyRange.
+    
+    If NumRows = 1 And LO.ListRows.Count = 0 Then
+        LO.ListRows.Add
+    End If
+    
+    ' If the new number of rows is less than the old number of rows, clear out
+    ' the rows that were just removed from the table.
+    If NumRows < oldNumRows Then
+        LO.DataBodyRange _
+            .Offset(NumRows, 0) _
+            .Resize(oldNumRows - NumRows, LO.ListColumns.Count) _
+            .ClearContents
+    End If
+End Sub
+
+Public Function GetTableColumnRange( _
+      TableName As String _
+    , Column As String _
+    , Optional WB As Workbook _
+    ) As Range
+    ' Returns the range of a table's column, including the header
+    '
+    ' Args:
+    '   TableName: Name of the Table.
+    '   Columns: Name of the column.
+    '   WB: Selected WorkBook.
+    '
+    ' Returns:
+    '   Range of cells for the selected table's column.
+    
+    Dim TableR As Range
+    Set TableR = TableRange(TableName, WB)
+    
+    Dim I As Long
+    For I = 1 To TableR.Columns.Count
+        If VBA.LCase(TableR(1, I).Value) = VBA.LCase(Column) Then
+            GoTo found
+        End If
+    Next I
+    
+    Err.Raise ErrNr.SubscriptOutOfRange, , ErrorMessage(ErrNr.SubscriptOutOfRange, "Column '" & Column & "' not found in table '" & TableName & "'")
+found:
+    ' Intersect of table range and entirecolumn
+    Set GetTableColumnRange = Intersect(TableR, TableR(1, I).EntireColumn)
+
+End Function
+
+Public Function GetTableColumnDataRange(LO As ListObject, ColumnName As String) As Range
+    ' Returns the data range for the given column of this Excel table.
+    ' An error will be raised if the selected Column name doesn't exist in the given List Object.
+    '
+    ' Args:
+    '   LO: List Object to fetch the column from
+    '   ColumnName: Name of the column where the data will be fetched from.
+    '
+    ' Returns:
+    '   Data Range of the given column.
+    
+    Dim listCol As ListColumn
+    
+    If Not hasKey(LO.ListColumns, ColumnName) Then
+        Err.Raise 32000, Description:= _
+        "Column: '" & ColumnName & "' of table '" _
+            & LO.Name & "' Doesn't exist."
+    End If
+    
+    Set listCol = LO.ListColumns(ColumnName)
+    
+    'On Error GoTo noDataRange
+    If LO.DataBodyRange Is Nothing Then
+        Exit Function
+    End If
+    
+    Set GetTableColumnDataRange = listCol.DataBodyRange
+'    Exit Function
+'
+'noDataRange:
+'    On Error GoTo 0
+    
+End Function
+
+Public Function GetTableRowRange( _
+      TableName As String _
+    , Columns As Collection _
+    , Values As Collection _
+    , Optional WB As Workbook _
+    ) As Range
+    ' Given a table name, Columns and Values to match _
+      this function returns the row in which these values matches
+    ' Comparison is case sensitive
+    ' If no match is found, a runtime error is raised
+    '
+    ' Args:
+    '   TableName: Name of the Table
+    '   Columns: Collection of Column names.
+    '   Values: Values to match agains.
+    '   WB: Selected WorkBook.
+    '
+    ' Returns:
+    '   The row in which the vales matches the comparison.
+    
+    Dim RowNumber As Long
+    RowNumber = GetTableRowIndex(TableName, Columns, Values, WB) ' this will throw a runtime error if not found
+    
+    Dim TableR As Range
+    Set TableR = TableRange(TableName, WB)
+    
+    ' Intersect of table range and entirerow
+    ' +1 as header is not included in GetTableRowIndex
+    Set GetTableRowRange = Intersect(TableR, TableR(RowNumber + 1, 1).EntireRow)
+End Function
+
+Public Sub GotoRowInTable( _
+      TableName As String _
+    , Columns As Collection _
+    , Values As Collection _
+    , Optional WB As Workbook _
+    )
+    ' Go to the cell that matches the entry in the Values input.
+    '
+    ' Args:
+    '   TableName: Name of the Table.
+    '   Columns: Columns to include in the search.
+    '   Values: Values to search for.
+    '   WB: Selected WorkBook.
+    
+    Application.GoTo GetTableRowRange(TableName, Columns, Values, WB), True
+End Sub
+
+Public Function GetTableRowNumberDataRange(LO As ListObject, RowNumber As Long) As Range
+    ' Returns the data range for the given row number of this Excel table.
+    ' An error will be raised if the selected row number name doesn't exist in the given List Object.
+    '
+    ' Args:
+    '   LO: List Object to fetch the column from
+    '   RowNumber: Row number where the data will be fetched from.
+    '
+    ' Returns:
+    '   Data Range of the given row number.
+    
+    Dim listCol As ListColumn
+    Dim listR As listRow
+        
+    If Not hasKey(LO.ListRows, RowNumber) Then
+        Err.Raise 32000, Description:= _
+        "Row number '" & RowNumber & "' of table '" _
+            & LO.Name & "' doesn't exist."
+    End If
+    
+    Set listR = LO.ListRows(RowNumber)
+    Set GetTableRowNumberDataRange = listR.Range
 End Function
 
 '*************** MiscTableToDicts
@@ -2228,70 +3138,6 @@ SetDefault:
     
 End Function
 
-Public Function GetTableRowRange( _
-      TableName As String _
-    , Columns As Collection _
-    , Values As Collection _
-    , Optional WB As Workbook _
-    ) As Range
-    ' Given a table name, Columns and Values to match _
-      this function returns the row in which these values matches
-    ' Comparison is case sensitive
-    ' If no match is found, a runtime error is raised
-    '
-    ' Args:
-    '   TableName: Name of the Table
-    '   Columns: Collection of Column names.
-    '   Values: Values to match agains.
-    '   WB: Selected WorkBook.
-    '
-    ' Returns:
-    '   The row in which the vales matches the comparison.
-    
-    Dim RowNumber As Long
-    RowNumber = GetTableRowIndex(TableName, Columns, Values, WB) ' this will throw a runtime error if not found
-    
-    Dim TableR As Range
-    Set TableR = TableRange(TableName, WB)
-    
-    ' Intersect of table range and entirerow
-    ' +1 as header is not included in GetTableRowIndex
-    Set GetTableRowRange = Intersect(TableR, TableR(RowNumber + 1, 1).EntireRow)
-    
-End Function
-
-Public Function GetTableColumnRange( _
-      TableName As String _
-    , Column As String _
-    , Optional WB As Workbook _
-    ) As Range
-    ' Returns the range of a table's column, including the header
-    '
-    ' Args:
-    '   TableName: Name of the Table.
-    '   Columns: Name of the column.
-    '   WB: Selected WorkBook.
-    '
-    ' Returns:
-    '   Range of cells for the selected table's column.
-    
-    Dim TableR As Range
-    Set TableR = TableRange(TableName, WB)
-    
-    Dim I As Long
-    For I = 1 To TableR.Columns.Count
-        If VBA.LCase(TableR(1, I).Value) = VBA.LCase(Column) Then
-            GoTo found
-        End If
-    Next I
-    
-    Err.Raise ErrNr.SubscriptOutOfRange, , ErrorMessage(ErrNr.SubscriptOutOfRange, "Column '" & Column & "' not found in table '" & TableName & "'")
-found:
-    ' Intersect of table range and entirecolumn
-    Set GetTableColumnRange = Intersect(TableR, TableR(1, I).EntireColumn)
-
-End Function
-
 Public Function TableLookupCell( _
       TableName As String _
     , Columns As Collection _
@@ -2372,20 +3218,54 @@ Public Function GetTableRowIndex( _
     
 End Function
 
-Public Sub GotoRowInTable( _
-      TableName As String _
-    , Columns As Collection _
-    , Values As Collection _
-    , Optional WB As Workbook _
-    )
-    ' Go to the cell that matches the entry in the Values input.
+Public Function TableDictToArray(TableDicts As Collection) As Variant()
+    ' Convert a TableDicts to an Array. The Column names of the TableDicts
+    ' get inserted as the first row in the array.
     '
     ' Args:
-    '   TableName: Name of the Table.
-    '   Columns: Columns to include in the search.
-    '   Values: Values to search for.
-    '   WB: Selected WorkBook.
+    '   TableDicts: Collection of dictionaries as a TableDicts.
+    '
+    ' Returns:
+    '   Array containing the input data.
     
-    Application.GoTo GetTableRowRange(TableName, Columns, Values, WB), True
-End Sub
+    Dim NumberOfRows As Long
+    Dim NumberOfColumns As Long
+    Dim I As Integer
+    Dim J As Integer
+    Dim dict As Dictionary
+    Dim ColumnNames() As Variant
+    Dim ColumnNamesAsString As String
+    Dim DictEntry As Variant
+    
+    NumberOfRows = TableDicts.Count
+    NumberOfColumns = TableDicts(1).Count
+    Dim arr() As Variant
+    ReDim arr(NumberOfRows, NumberOfColumns - 1)
+    ColumnNames = TableDicts(1).Keys()
+    ColumnNamesAsString = Join(ColumnNames, ",")
+
+    For Each dict In TableDicts
+        If dict.Count <> NumberOfColumns Then
+            Err.Raise -997, , "Mismatch lengths for the dictionary entries. "
+        End If
+        
+        For Each DictEntry In dict.Keys()
+        
+            If (InStr(ColumnNamesAsString, DictEntry) = 0) Then
+                Err.Raise -996, , "Mismatching dictionaries found. "
+            End If
+        Next DictEntry
+    Next dict
+
+    For I = 0 To UBound(ColumnNames)
+        arr(0, I) = ColumnNames(I)
+    Next
+    
+    For I = 0 To NumberOfRows - 1
+        For J = 0 To NumberOfColumns - 1
+            arr(I + 1, J) = TableDicts(I + 1)(ColumnNames(J))
+        Next J
+    Next I
+    TableDictToArray = arr
+End Function
 

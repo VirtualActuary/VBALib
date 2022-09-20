@@ -300,13 +300,13 @@ Config(
     ),
     Source(
         git_source="https://github.com/VirtualActuary/MiscVBAFunctions.git",
-        git_rev="8e5e8f3",
+        git_rev="v2.5.0",
         glob_include=[
             "MiscVBAFunctions/**/*.bas",
             "MiscVBAFunctions/**/*.cls",
             "**/thisworkbook.txt",
         ],
-        glob_exclude=["**/Test__*"],
+        glob_exclude=["**/Test__*", "**/Casing.bas"],
         combine_bas_files="Fn",
         auto_bas_namespace=True,
         auto_cls_rename=False,
